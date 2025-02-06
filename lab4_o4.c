@@ -2,17 +2,16 @@
 #include <stdlib.h>
 #include <time.h>
 
-int main(){
-	int siarrList[5]; 
+int main(int iArgC, char *pszArgV[]){
 	
-	srand(time(NULL));
-	siarrList[0] = rand()%100;
-	siarrList[1] = rand()%100;
-	siarrList[2] = rand()%100;
-	siarrList[3] = rand()%100;
-	siarrList[4] = rand()%100;
+	for(int i = 2, i < (sizeof(pszArgV) / sizeof(pszArgV[0]), i++){
+		
 
-	printf("The unsorted list: %s", siarrList);
+	}
+
+	srand(time(NULL));
+
+	printf("The unsorted list: %s\n", siarrList);
 	
 	return 0;
 
