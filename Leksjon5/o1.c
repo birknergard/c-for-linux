@@ -8,21 +8,68 @@ int InsertInt(
 	int iAtRow,
    	int iColCount
 );
-
 void BubbleSort(int *iArr, int iArrLen);
 void Swap(int *ipA, int *ipB);
 void PrintTable(int **iArr, int iRows, int iCols);
 
+int TableInsert(
+	int **iArr,
+	int iRows,
+	int iCols,
+	int iInput
+){
+
+	int i, bInserted;
+
+	srand(time(NULL));
+	int iRandomRow = rand() % iRows;
+	printf("Randomly assigned row (ceiling: %d): %d\n", iRows-1, iRandomRow);
+
+	/* Initial insert */
+	bInserted = InsertInt(iArr[iRandomRow], iInput, iRandomRow, iCols);
+
+	/* Linear insert (if initial fails) */
+	if(bInserted == 1){
+		printf("Data was not inserted at random row [%d]\n --> Inserting linearly ...\n", iRandomRow);
+		for(i = 0; i < iRows; i++){
+
+			/* Row was on initial random insert attempt, so we skip it */
+			if(i == iRandomRow){
+				continue;
+			}
+
+
+			bInserted = InsertInt(iArr[i], iInput, i, iCols);	
+			if(bInserted == 0){
+				printf("--> Inserted at available space after failed random assignment.\n");
+				break;
+			}
+		}	
+
+		/* Checking the very last insert attempt. Since  */ 
+		if(bInserted == 1){
+			printf("Array is full.\n");	
+			return 1;
+		}
+
+		if(bInserted == 0){
+			return 0;
+		}
+	} 
+
+}
+
+
 int main(int iArgC, char **apszArgV){
 
-	int *ipRows, *ipCols, iArgs, *ipIn, iInserted;
+	int **iArr;
+	int *ipRows, *ipCols, *ipIn; 
+	int bInserted;
+	int i, j;
 
-	ipRows = (int *) malloc(sizeof(int*));
-	ipCols = (int *) malloc(sizeof(int*));
+	ipRows = (int *) malloc(sizeof(int));
+	ipCols = (int *) malloc(sizeof(int));
 
-	int **iArr, i, j;
-
-	iArgs = 0;
 	printf("\nEnter rows: ");
 	scanf("%d", ipRows);
 	printf("\nEnter columns: ");
@@ -32,17 +79,15 @@ int main(int iArgC, char **apszArgV){
 
 	iArr = (int **) malloc(*ipRows * sizeof(int *));
 	for(i = 0; i < *ipRows; ++i){
-		iArr[i] = (int *) malloc(*ipCols * sizeof(int ));
+		iArr[i] = (int *) malloc(*ipCols * sizeof(int));
 		for(j = 0; j < *ipCols; j++){
 			iArr[i][j] = 0;	
 		}
-
 	}
 
-
-
+	ipIn = (int *) malloc(sizeof(int));
+	int bIsFull = 1;
 	while(1){
-		ipIn = (int *) malloc(sizeof(int*));
 		printf("\nEnter a non-zero positive integer.\n Num: ");
 		scanf("%d", ipIn);	
 			
@@ -53,38 +98,17 @@ int main(int iArgC, char **apszArgV){
 			}
 		}
 
-		srand(time(NULL));
-		int iRandomRow = rand()% (*ipRows);
-		printf("Randomly assigned row (ceiling: %d): %d\n", *ipRows-1, iRandomRow);
-
-		iInserted = InsertInt(iArr[iRandomRow], *ipIn, iRandomRow, *ipCols);
-		if(iInserted == 1){
-			printf(
-				"Data was not inserted at row [%d]\n Checking from start ...\n",
-				iRandomRow
-			);
-
-			for(i = 0; i < *ipRows - 1; i++){
-				if(i != iRandomRow){
-					iInserted = InsertInt(iArr[i], *ipIn, i, *ipCols);	
-					if(iInserted == 0){
-						printf("--> Inserted at available space after failed random assignment.\n");
-						break;	
-					}
-				}
-
-			}	
-
-			if(iInserted == 0){
-				printf("Array is full.\n");	
-				break;
-			}
-		} 
+		bIsFull = TableInsert(iArr, *ipRows, *ipCols, *ipIn);
+		if(bIsFull == 1){
+			break;	
+		}
 		printf("\nCurrent Table:\n");
 		PrintTable(iArr, *ipRows, *ipCols);
 	}
+	free(ipIn);
+	ipIn = NULL;
 
-	printf("\nUnsorted Table\n");
+	printf("Table is full!\n\nUnsorted Table\n");
 	PrintTable(iArr, *ipRows, *ipCols);
 
 	for(i = 0; i < *ipRows; ++i){
@@ -95,15 +119,22 @@ int main(int iArgC, char **apszArgV){
 	PrintTable(iArr, *ipRows, *ipCols);
 
 	/* Freeing pointers and arrays */
-	free(ipRows);
-	free(ipCols);
-	free(ipIn);
-
 	for(i = 0; i < *ipRows; ++i){
 		free(iArr[i]);	
+		iArr[i] = NULL;
 	}
+	printf("Freed columns in array\n");
 
 	free(iArr);
+	iArr = NULL;
+	printf("Freed rows in array\n");
+
+	free(ipRows);
+	printf("Freed row pointer\n");
+
+	free(ipCols);
+	printf("Freed col pointer\n");
+
 
 	return 0;
 } 
@@ -126,30 +157,28 @@ int InsertInt(
 			printf("%d was inserted at index [%d][%d]\n", iVal, iAtRow, i);
 			return 0;
 		}
-
 	}
 }
 
 void BubbleSort(int *iArr, int iArrLen){
 	int iIterations, i;
-	int *ipA = (int *) malloc(sizeof(int)); 
-	int *ipB = (int *) malloc(sizeof(int));
+	int *ipA = NULL;
+	int *ipB = NULL;
 
 	for(;;){
 		iIterations = 0;
+
 		for(i = 1; i < iArrLen; ++i){
+
 			ipA = &iArr[i - 1];
 			ipB = &iArr[i];
-			if(*ipA > *ipB){
+			if(*ipA < *ipB){
 				Swap(ipA, ipB);	
 			}
 		}	
 
 		if(iIterations == 0) break;
 	}
-
-	free(ipA);
-	free(ipB);
 }
 
 void Swap(int *ipA, int *ipB){
