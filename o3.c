@@ -9,12 +9,12 @@ int main(void){
 	char *pVowelsCurr;
 	char *szVowels;
 
+	pInit = (char*) malloc(50 * sizeof(char) + 1);
+
 	int iLen, iMaxSize, i, j;
 
 	szVowels = "aeiouy";
 	pVowelsCurr = szVowels;
-
-	pInit = (char*) malloc(50 * sizeof(char) + 1);
 
 	iMaxSize = 50;
 	psz = (char*) malloc(50 * sizeof(char) + 1);
