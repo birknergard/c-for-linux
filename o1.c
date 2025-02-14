@@ -1,51 +1,105 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-int InsertIntIn(
-	int **iArr,
+int InsertInt(
+	int *iArr,
    	int iVal,
 	int iAtRow,
-   	int iColCount,
+   	int iColCount
 );
+
+void BubbleSort(int *iArr, int iArrLen);
+void Swap(int *ipA, int *ipB);
+void PrintTable(int **iArr, int iRows, int iCols);
 
 int main(int iArgC, char **apszArgV){
 
-	int *iRows, *iCols, iArgs, *iIn, iInserted;
+	int *ipRows, *ipCols, iArgs, *ipIn, iInserted;
 
-	int **iArr, i;
+	ipRows = (int *) malloc(sizeof(int*));
+	ipCols = (int *) malloc(sizeof(int*));
 
+	int **iArr, i, j;
 
-	while iArgs != 2{
-		printf("Enter rows, columns (r, c):");
-		iArgs = scanf("%d, %d", iRows, iCols);
-	}
+	iArgs = 0;
+	printf("\nEnter rows: ");
+	scanf("%d", ipRows);
+	printf("\nEnter columns: ");
+	scanf("%d", ipCols);
 	
-	iArr = (int **) malloc(*iRows * sizeof(int));
-	for(i = 0; i < iCols; ++i){
-		iArr[i] = (int *) malloc(*iCols * sizeof(int));
-	}
+	printf("rows: %d - cols: %d\n", *ipRows, *ipCols);
 
-	while(iIn < 0){
-		printf("Enter a positive integer or a negative number to exit.\n Num: ");
-		iArgs = scanf("%d", iIn);	
-			
-		
-		srand(time(NULL));
-		int iRandomRow = rand()%(iRows-1);
-
-		iInserted = InsertInt(iArr, *iIn, iRandomRow, iCols);
-		if(iInserted == 0){
-			
+	iArr = (int **) malloc(*ipRows * sizeof(int *));
+	for(i = 0; i < *ipRows; ++i){
+		iArr[i] = (int *) malloc(*ipCols * sizeof(int ));
+		for(j = 0; j < *ipCols; j++){
+			iArr[i][j] = 0;	
 		}
 
-	}	
+	}
+
+
+
+	while(1){
+		ipIn = (int *) malloc(sizeof(int*));
+		printf("\nEnter a non-zero positive integer.\n Num: ");
+		scanf("%d", ipIn);	
+			
+		if(*ipIn <= 0){
+			while(*ipIn <= 0){
+				printf("\nNot a non-zero positive integer. Try again.\n Num:");
+				scanf("%d", ipIn);	
+			}
+		}
+
+		srand(time(NULL));
+		int iRandomRow = rand()% (*ipRows);
+		printf("Randomly assigned row (ceiling: %d): %d\n", *ipRows-1, iRandomRow);
+
+		iInserted = InsertInt(iArr[iRandomRow], *ipIn, iRandomRow, *ipCols);
+		if(iInserted == 1){
+			printf(
+				"Data was not inserted at row [%d]\n Checking from start ...\n",
+				iRandomRow
+			);
+
+			for(i = 0; i < *ipRows - 1; i++){
+				if(i != iRandomRow){
+					iInserted = InsertInt(iArr[i], *ipIn, i, *ipCols);	
+					if(iInserted == 0){
+						printf("--> Inserted at available space after failed random assignment.\n");
+						break;	
+					}
+				}
+
+			}	
+
+			if(iInserted == 0){
+				printf("Array is full.\n");	
+				break;
+			}
+		} 
+		printf("\nCurrent Table:\n");
+		PrintTable(iArr, *ipRows, *ipCols);
+	}
+
+	printf("\nUnsorted Table\n");
+	PrintTable(iArr, *ipRows, *ipCols);
+
+	for(i = 0; i < *ipRows; ++i){
+		BubbleSort(iArr[i], *ipCols);	
+	}
+
+	printf("\nSorted Table\n");
+	PrintTable(iArr, *ipRows, *ipCols);
 
 	/* Freeing pointers and arrays */
-	free(iRows);
-	free(iCols);
-	free(iIn);
+	free(ipRows);
+	free(ipCols);
+	free(ipIn);
 
-	for(i = 0; i < iRows; i++){
+	for(i = 0; i < *ipRows; ++i){
 		free(iArr[i]);	
 	}
 
@@ -55,24 +109,65 @@ int main(int iArgC, char **apszArgV){
 } 
 
 int InsertInt(
-	int **iArr,
+	int *iArr,
    	int iVal,
 	int iAtRow,
-   	int iColCount,
+   	int iColCount
 ){
 	int result, i;
 
 	for(i = 0; i < iColCount; i++){
-		if(iArr[i] != NULL && i == iColCount -1){
-			return 0;	
-
-		} else {
-			iArr[iAtRow][i] = *iIn;
-			printf("%d was inserted at index [%d][%d]");
-			return 1;
-		} 
+		if(iArr[i] != 0 && i == iColCount -1){ /* check over this again */
+			return 1;	
+			
+		}
+		if(iArr[i] == 0){
+			iArr[i] = iVal;
+			printf("%d was inserted at index [%d][%d]\n", iVal, iAtRow, i);
+			return 0;
+		}
 
 	}
+}
+
+void BubbleSort(int *iArr, int iArrLen){
+	int iIterations, i;
+	int *ipA = (int *) malloc(sizeof(int)); 
+	int *ipB = (int *) malloc(sizeof(int));
+
+	for(;;){
+		iIterations = 0;
+		for(i = 1; i < iArrLen; ++i){
+			ipA = &iArr[i - 1];
+			ipB = &iArr[i];
+			if(*ipA > *ipB){
+				Swap(ipA, ipB);	
+			}
+		}	
+
+		if(iIterations == 0) break;
+	}
+
+	free(ipA);
+	free(ipB);
+}
+
+void Swap(int *ipA, int *ipB){
+	int temp;
+	temp = *ipA;
+	*ipA = *ipB;
+	*ipB = temp;	
+}
+
+void PrintTable(int **iArr, int iRows, int iCols){
+	int i, j;
+	for(i = 0; i < iRows; i++){
+		printf("%d: [", i);
+		for(j = 0; j < iCols; j++){
+			printf(" %d ", iArr[i][j]);	
+		}
+		printf("]\n");
+	}	
 }
 /*
 Exercise 1:
