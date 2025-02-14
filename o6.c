@@ -8,31 +8,34 @@ void BubbleSort(char **apszArr, int iLen);
 void PrintStringArray(char **apszArr, int iLen, char *szDesc);
 
 
-int main(int iArgC, char **paszArgV){
+int main(int iArgC, char **apszArgV){
 
 	int iMaxLength = 50;
-
 	int iLen = iArgC - 1; 
-	char **szArr;	
-	szArr = malloc(iLen * sizeof(char*));
-	if(szArr == NULL) return 1;
-	
 	int i;
+
+	char **szArr;	
+	
+	if(iArgC < 2){
+		printf("You have to provide at least two strings. Exiting ...");	
+		return 1;
+	}
+
 	for(i = 1; i < iLen; i++){
 		/* verify each string for max length */
-		if(sizeof(paszArgV + 1) > iMaxLength){
-			printf("%s contains too many characters. MAX = 50 characters.\n", paszArgV[i]);
+		if(sizeof(apszArgV + 1) > iMaxLength){
+			printf("%s contains too many characters. MAX = 50 characters.\n", apszArgV[i]);
 			return 1;	
 		}
 	}
 
+	/* Allocating memory for each string in the array*/
+	szArr = (char **) malloc(iLen * sizeof(char*));
 	for(i = 0; i < iLen; i++){
-		/* Allocating memory for each string in the array*/
-		szArr[i] = malloc((iMaxLength * sizeof(char)) + 1); 	
-		if(szArr[i] == NULL) return 1;
+		szArr[i] = (char *) malloc((iMaxLength * sizeof(char)) + 1); 	
 
 		/* copying strings from args to sz array */
-		szArr[i] = paszArgV[i + 1];
+		strcpy(szArr[i], apszArgV[i + 1]);
 	}
 
 	PrintStringArray(szArr, iLen, "unsorted");
@@ -41,8 +44,8 @@ int main(int iArgC, char **paszArgV){
 
 	PrintStringArray(szArr, iLen, "sorted");
 	
-	/* Freeing memory for stringarray*/
-	for(i = iLen - 1; i >= 0; --i){
+	/* Why is it in reverse? Freeing memory for stringarray*/
+	for(i = 0; i < iLen; ++i){
 		printf("Freeing %s(%d bytes) from strArr\n", szArr[i], strlen(szArr[i]));
 		free(szArr[i]);
 	}
@@ -115,7 +118,7 @@ void PrintStringArray(char **apszArr, int iLen, char *szDesc){
 	int i;
 	for(i = 0; i < iLen; ++i){
 		/* verifies string size */
-		printf(" %s(%p)", apszArr[i], &apszArr[i]);
+		printf(" %s(%d bytes)", apszArr[i], sizeof(*apszArr[i]));
 	}
 	printf("\n");
 }
