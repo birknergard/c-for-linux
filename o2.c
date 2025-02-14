@@ -19,10 +19,8 @@ int main(void){
 		sz++;
 		iSzLen++;
 	}
-
 	
 	printf("Length of \"Hello World\" is %d\n", iSzLen); /* adding one to i given zero termination "\0"*/
-
 
 	/* Output should be the same as the following */
 	printf("strlen of \"Hello World\"%d\n", strlen(szBase));
