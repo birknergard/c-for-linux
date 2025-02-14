@@ -44,7 +44,7 @@ int main(int iArgC, char **apszArgV){
 
 	PrintStringArray(szArr, iLen, "sorted");
 	
-	/* Why is it in reverse? Freeing memory for stringarray*/
+	/* Freeing memory for stringarray*/
 	for(i = 0; i < iLen; ++i){
 		printf("Freeing %s(%d bytes) from strArr\n", szArr[i], strlen(szArr[i]));
 		free(szArr[i]);
