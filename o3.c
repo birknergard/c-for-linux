@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 
 int main(void){
@@ -9,7 +10,6 @@ int main(void){
 	char *pVowelsCurr;
 	char *szVowels;
 
-	pInit = (char*) malloc(50 * sizeof(char) + 1);
 
 	int iLen, iMaxSize, i, j;
 
@@ -32,7 +32,7 @@ int main(void){
 	printf("\nARRAY: All vowels for string: %s ->", psz);
 	for(i = 0; i < iLen; ++i){
 		for(j = 0; j < strlen(szVowels); ++j){
-			if(psz[i] == szVowels[j]){
+			if(tolower(psz[i]) == szVowels[j]){
 				printf(" %c", psz[i]);
 			}
 		}
@@ -45,10 +45,10 @@ int main(void){
 		psz++;
 		pVowelsCurr = szVowels; 
 		for(j = 0; j < strlen(szVowels) + 1; ++j){
-			pVowelsCurr++;			
-			if(*psz == *pVowelsCurr){
+			if(tolower(*psz) == *pVowelsCurr){
 				printf(" %c", *psz);
 			}	
+			pVowelsCurr++;			
 		} 
 	}
 	printf("\n");
@@ -57,6 +57,8 @@ int main(void){
 	/* Restores position of pointer with pszInit */ 
 	psz = pInit;
 
+	/* Does not result in memory leak since psz and pInit have the same adress, so both are
+ *	   Sucessfully freed simultaneously? */
 	free(psz);
 	
 
