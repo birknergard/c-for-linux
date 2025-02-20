@@ -9,10 +9,7 @@
 
 int ParseInt(char *string){
 	int len, i, j;
-	char *buffer;
 	len = strlen(string);
-
-	buffer = (char *) malloc(MAX_BUFFER);
 
 	i = 0;
 	while(isspace(string[i]) == 0) i++;
@@ -117,6 +114,8 @@ BOT CreateBot(int iSize){
 			}
 		}
    	}
+
+	free(iaFlat);
 
 	bot.iaMatrix = iaMatrix;
 	bot.iSum = iSize;
