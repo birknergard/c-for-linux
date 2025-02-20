@@ -18,7 +18,7 @@ int ParseInt(char *string){
 	if(string[i] == '-') i++; 
 
 	do{
-		if(string[i] = '\0') break;	
+		if(string[i] == '\0') break;	
 		if(isdigit(string[i]) == 0) i++;
 		else return false;	
 	} while(i < len);
@@ -70,7 +70,6 @@ void PrintMatrix(int **matrix){
 
 void PrintBot(BOT bot){
 	PrintMatrix(bot.iaMatrix);
-	/*printf("DEBUG: bot size: %d", bot.iSum);*/
 }
 
 BOT CreateBot(int iSize){
@@ -135,14 +134,10 @@ void FreeBots(BOT* bots, int iBotCount){
 	int i, j;
 	for(i = 0; i < iBotCount; i++){
 		for(j = 0; j < 3; j++){
-			printf("\nDEBUG: Freeing bot matrixes.\n");
 			free(bots[i].iaMatrix[j]);	
 		}
-
-		printf("\nDEBUG: Freeing indivual bot pointers.\n");
 		free(bots[i].iaMatrix);
 	}
-	printf("\nDEBUG: Freeing bot array.\n");
 	free(bots);
 }
 
@@ -175,7 +170,7 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 	iCurrentBot = 0;
 
 	for(;;){
-		//system("clear");
+		system("clear");
 		timestampCurrent = time(NULL);
 		timeLeft = timestampCurrent - timestampBase;
 		
@@ -226,7 +221,6 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 
 	free(buffer);
 	free(pInput);
-
 	
 	FreeBots(aBots, iBotCount);
 
@@ -261,7 +255,7 @@ int main(int iArgc, char **apszArgV){
 
 	fgets(buffer, MAX_BUFFER, stdin);
 	
-	//system("clear");
+	system("clear");
 
 
 	for(;;){
@@ -271,7 +265,7 @@ int main(int iArgc, char **apszArgV){
 			fgets(buffer, MAX_BUFFER, stdin);
 			iTime--;
 			iBotsPerLevel++;
-			// system("clear");
+			system("clear");
 		} else {
 			printf(
 				"You failed.\n\nStats\nLevels Completed: %d\nKills: %d",
