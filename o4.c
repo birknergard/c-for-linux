@@ -7,7 +7,7 @@
 
 #define MAX_BUFFER 256
 
-int ParseInt(char *string){
+bool ParseInt(char *string){
 	int len, i, j;
 	len = strlen(string);
 
@@ -21,6 +21,7 @@ int ParseInt(char *string){
 		if(string[i] == '\0') break;	
 		if(isdigit(string[i]) == 0) i++;
 		else return false;	
+
 	} while(i < len);
 
 	return true;
@@ -39,8 +40,6 @@ typedef struct {
 	int iSum;
 } BOT;
 #pragma pack ()
-
-
 
 void PrintArray(int *iarr, int iLen){
 	int i;
@@ -141,8 +140,8 @@ void FreeBots(BOT* bots, int iBotCount){
 	free(bots);
 }
 
-bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
-	int iLifePoints, iCurrentBot, iBotsLeft, iRand, timeLeft, i;
+bool RunLevel(int iBotCount, int iTime, int *ipKillCount, int *ipLifePoints){
+	int iCurrentBot, iBotsLeft, iRand, timeLeft, i;
 
 	BOT *aBots;
 	
@@ -166,7 +165,6 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 
 	iBotsLeft = iBotCount;
 
-	iLifePoints = 20;
 	iCurrentBot = 0;
 
 	for(;;){
@@ -174,7 +172,8 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 		timestampCurrent = time(NULL);
 		timeLeft = timestampCurrent - timestampBase;
 		
-		printf("Lifepoints: %d\n", iLifePoints);
+		printf("Lifepoints: %d\n", *ipLifePoints);
+		printf("Kills: %d\n", *ipKillCount);
 		printf("Time left: %d\n",  (iTime - timeLeft));
 		if(iTime - timeLeft <= 0){
 			printf("You ran out of time.\n");	
@@ -183,7 +182,6 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 		}
 
 		if(iBotsLeft == 0){
-			printf("\nYou killed all the bots!\n");
 			completed = true;
 			break;	
 		}
@@ -204,18 +202,18 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 
 		if(*pInput == aBots[iCurrentBot].iSum){
 			iBotsLeft--;
-			*ipKillCount++;
+			*ipKillCount = *ipKillCount + 1;
 
 			printf("Correct! You killed the bot. Next ...\n");
 			iCurrentBot++;
 
 		} else {
-			iLifePoints -= 5;	
-			if(iLifePoints == 0){
+			*ipLifePoints -= 5;
+			if(*ipLifePoints == 0){
 				completed = false;	
 				break;
 			}
-			printf("Wrong. You lost 5 points. You have %d left.\n", iLifePoints);
+			printf("Wrong. You lost 5 points. You have %d left.\n", *ipLifePoints);
 		}
 	}
 
@@ -235,23 +233,26 @@ bool RunLevel(int iBotCount, int iTime, int *ipKillCount){
 int main(int iArgc, char **apszArgV){
 	srand(time(NULL));
 	int iBotsPerLevel, iTime, iCompletedLevels;
-	int *ipKills;
-	bool completedLevel;
+	int *ipKills, *ipLifePoints;
+	bool bCompletedLevel;
 	char* buffer;
 
 	buffer = (char *) malloc(MAX_BUFFER);
+	ipLifePoints = (int *) malloc(sizeof(int));
 	ipKills = (int *) malloc(sizeof(int));
 
+	*ipLifePoints = 30;
 	*ipKills = 0;
 
 	iBotsPerLevel = 3;
 	iTime = 10;
 	iCompletedLevels = 0;
 
-	printf("Welcome to the game!\n\n Your objective is sum numbers to kill bots!\n");
-	printf("To kill bots you add up all their numbers and write the sum in the terminal.\n");
-	printf("If you miss, you lose 5 points. If you lose all your points you lose.\n");
-	printf("\n\nPress enter any character to start ...\n");
+	printf("Welcome to the game!\n\nYour objective is sum numbers to kill bots!\n");
+	printf("To kill bots you add up all their numbers and write enter the sum in the terminal.\n");
+	printf("If you fail, you lose 5 points. If you lose all your points you lose.\n");
+	printf("You have 10 seconds for the first level, and 1 less second each subsequent level.\n");
+	printf("\n\nEnter any character to start ...\n");
 
 	fgets(buffer, MAX_BUFFER, stdin);
 	
@@ -259,18 +260,20 @@ int main(int iArgc, char **apszArgV){
 
 
 	for(;;){
-		completedLevel = RunLevel(iBotsPerLevel, iTime, ipKills);
-		if(completedLevel){
-			printf("You completed the level!\n Enter any key to continue ...");
+		bCompletedLevel = RunLevel(iBotsPerLevel, iTime, ipKills, ipLifePoints);
+		if(bCompletedLevel){
+			printf("You completed the level!\n\n Enter any key to continue ...");
 			fgets(buffer, MAX_BUFFER, stdin);
+			iCompletedLevels++;
 			iTime--;
 			iBotsPerLevel++;
 			system("clear");
 		} else {
 			printf(
-				"You failed.\n\nStats\nLevels Completed: %d\nKills: %d",
+				"You failed.\n\nStats\nLevels Completed: %d\nKills: %d\n",
 				iCompletedLevels, *ipKills  
 			);	
+			printf("\nThanks for playing");
 			break;
 		}
 	}
@@ -280,4 +283,3 @@ int main(int iArgc, char **apszArgV){
 
 	return 0;
 }
-
