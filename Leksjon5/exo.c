@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <string.h>
+
+int main(int iArgC, char **apszArgV){
+	char *code = "446574746520657220656e2066696c206465726520736b616c207465737465206d65642c2064656e20696e6e65686f6c6465722074656b737420736f6d2065722068657820656e6b6f6465742e2044656e6e65206f7070676176656e20696c6c757374726572657220656e6b656c206c6573696e672061762066696c6572206f672061742064657265206b616e20746120656e20656e6b656c206b6f6e766572746572696e6720617620646174612c2073616d7420656e6b656c206c6f6f70206b6f64652e204465747465206b6c61726572206475206e6f6b2066696e742e";
+	char *glyph;
+	glyph = (char*) malloc(3);
+
+	int i, ascii;
+	int iLen = strlen(code);
+
+	for(i = 0; i < iLen; i += 2){
+		glyph[0] = code[i];
+		glyph[1] = code[i + 1];
+		glyph[2] = '\0';
+
+
+		ascii = (int) strtol(glyph, NULL, 16);
+
+
+		printf("%c", ascii);
+
+	}
+
+	return 0;
+
+}
