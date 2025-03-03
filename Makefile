@@ -4,20 +4,20 @@ INCLDIR = ./include
 CC = gcc
 CFLAGS = -O2
 CFLAGS += -I $(INCLDIR)
-CFLAGs += -std=c89
+CFLAGS += -std=c89
 
 OBJDIR = obj
 
 _DEPS = source.h
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = exo.o
+_OBJS = o3.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-exo: $(OBJS)
+o3: $(OBJS)
 	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
