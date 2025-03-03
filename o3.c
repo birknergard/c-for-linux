@@ -41,32 +41,77 @@ Write a program that does the opposite - takes in a code and decodes it to the w
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define MAX_BUFFER 4096
 
+void AddPosition(long iPosition, long *lpArray, int iIndex);
+
+void PrintCode(long *lpArray, int iLength);
+
 int main(int iArgC, char **apszArgV){
 
-	FILE *fText;
-	char *szBuffer, cCurrent;
-	int i, iInputLength;
+	FILE *fpText;
+	char *szInput, *szFileBuffer, cTextChar, cInputChar;
+	int i, iCurrentCharIndex, iInputLength, iTextLength, iTextSize;
+	long lPosition, *lpPositionArray;
 
-	szBuffer = (char*) malloc(MAX_BUFFER + 1);
+
+	szInput = (char*) malloc(MAX_BUFFER + 1);
 
 
-	fText = fopen("./Leksjon6/adventures.txt","r");
+	fpText = fopen("./Leksjon6/adventures.txt","r");
+	if(fpText != NULL){
+		if(fseek(fpText, 0, SEEK_END) == 0){
+			iTextSize = ftell(fpText);	
+			rewind(fpText);
+		}	
+	}
+
+	szFileBuffer = (char*) malloc(iTextSize);
+	fgets(szFileBuffer, iTextSize, fpText);
+	fclose(fpText);
 	
 	puts("Enter your input\n--> ");
-	fgets(szBuffer, MAX_BUFFER, stdin);
+	fgets(szInput, MAX_BUFFER, stdin);
 
+	iInputLength = strlen(szInput);
+	iTextLength = strlen(szFileBuffer);
 
-	for(i = 0; i < iInputLength; i++){
-		cCurrent = szBuffer[i];	
-
-	}
+	lpPositionArray = (long*) malloc(sizeof(long) * iInputLength);
+	if(lpPositionArray == NULL) return 1;
 	
+	iCurrentCharIndex = 0;
+	for(i = 0; i < iTextLength; i++){
+		cTextChar = szFileBuffer[i];	
+		cInputChar = szInput[iCurrentCharIndex];
 
-	fclose(fText);
-	free(szBuffer);
+		if(cTextChar == cInputChar){
+			lPosition = iCurrentCharIndex; 
+			AddPosition(lPosition, lpPositionArray, iCurrentCharIndex);
+			++iCurrentCharIndex;	
+		}
+	}
+
+	PrintCode(lpPositionArray, iInputLength);
+	
+	free(szInput);
+	free(lpPositionArray);
 	
 	return 0;
 }
+
+void AddPosition(long iPosition, long *lpArray, int iIndex){
+	lpArray[iIndex] = iPosition;
+}
+
+void PrintCode(long *lpArray, int iLength){
+	int i;
+
+	puts("-");
+	for(i = 0; i < iLength; i++){
+		printf(" %d", lpArray[i]);	
+	}
+	puts(" -\n");
+}
+

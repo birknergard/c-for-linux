@@ -92,7 +92,7 @@ read binary file
 	for(j = 0; j < 100; j++){
 		fprintf(fpConvertedFile, "%.1f ", szFileContentsBin[j]);
 	}
-	fclose(fpBinFile);
+
 	fclose(fpBinFile);
 	fclose(fpConvertedFile);
 

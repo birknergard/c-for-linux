@@ -28,8 +28,6 @@ int main(int iArgC, char **apszArgV){
 	int iBookSize, i;
 	int iTwoVowels, iDoubleLetters, iSameChar;
 
-	//cWord = (char *) malloc(sizeof(char));
-
 	fpBook = fopen("./o2_BOOK.txt", "r");
 	if(fpBook != NULL){
 		printf("Book found.\n");
