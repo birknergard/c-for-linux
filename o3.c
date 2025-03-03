@@ -56,16 +56,16 @@ int main(int iArgC, char **apszArgV){
 	int i, iCurrentCharIndex, iInputLength, iTextLength, iTextSize;
 	long lPosition, *lpPositionArray;
 
-
-	szInput = (char*) malloc(MAX_BUFFER + 1);
-
+	szInput = (char*) malloc(MAX_BUFFER);
+	if(szInput == NULL)
+		return 1;
 
 	fpText = fopen("./Leksjon6/adventures.txt","r");
 	if(fpText != NULL){
 		if(fseek(fpText, 0, SEEK_END) == 0){
 			iTextSize = ftell(fpText);	
 			rewind(fpText);
-		}	
+		}
 	}
 
 	szFileBuffer = (char*) malloc(iTextSize);
@@ -78,20 +78,23 @@ int main(int iArgC, char **apszArgV){
 	iInputLength = strlen(szInput);
 	iTextLength = strlen(szFileBuffer);
 
-	lpPositionArray = (long*) malloc(sizeof(long) * iInputLength);
-	if(lpPositionArray == NULL) return 1;
+	lpPositionArray = (long*) malloc(sizeof(long) * iInputLength - 1);
+	if(lpPositionArray == NULL)
+	   	return 1;
 	
 	iCurrentCharIndex = 0;
 	for(i = 0; i < iTextLength; i++){
+		printf("%c", szFileBuffer[i]);
 		cTextChar = szFileBuffer[i];	
 		cInputChar = szInput[iCurrentCharIndex];
 
 		if(cTextChar == cInputChar){
-			lPosition = iCurrentCharIndex; 
+			lPosition = (long) i; 
 			AddPosition(lPosition, lpPositionArray, iCurrentCharIndex);
 			++iCurrentCharIndex;	
 		}
 	}
+
 
 	PrintCode(lpPositionArray, iInputLength);
 	
@@ -110,8 +113,9 @@ void PrintCode(long *lpArray, int iLength){
 
 	puts("-");
 	for(i = 0; i < iLength; i++){
-		printf(" %d", lpArray[i]);	
+		printf(" %d:%d", i, lpArray[i]);	
 	}
 	puts(" -\n");
+	
 }
 
