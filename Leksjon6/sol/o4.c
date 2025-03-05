@@ -42,3 +42,54 @@ the file or, as a third alternative test, then strip off the checksum previously
 file. I would start making a program that just reads a given file into memory, calculates the
 checksum and prints it in the screen. You will find an example in the Md5-folder.
 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "./Leksjon6/md5/md5.h"
+
+void AddHash(FILE *fpChecksum, char *szText);
+void TestHash(FILE *fpChecksum);
+void StripHash(FILE *fpChecksum);
+
+int main(int iArgC, char **apszArgV){
+	FILE *fpChecksum;
+	fpChecksum = NULL;
+
+	fpChecksum = fopen("./o4_checksum.bin", "bw+");
+	
+	fclose(fpChecksum);
+
+	AddHash(fpChecksum, apszArgV[1]);
+
+		
+
+	return 0;
+}
+
+void AddHash(FILE *fpChecksum, char *szText){
+	MD5_CTX ctx;
+	BYTE aucHash[16];
+
+	md5_init(&ctx);   // Initialize the ctx.
+	md5_update(&ctx, szText, strlen(szText));  // Add text to the hash
+	md5_final(&ctx, aucHash); // When all data is added, finalize and get the hash
+
+	fwrite(aucHash, 16, 1, fpChecksum);
+}
+
+void TestHash(FILE *fpChecksum){
+	MD5_CTX ctx;
+	char *szBuffer;
+	BYTE aucHash[16];
+
+	szBuffer = (char*) malloc(16);
+
+
+	// Read bitstream, specifically the last pointer of the bitstream if it exists.
+	fread(szBuffer, 16, 1, fpChecksum);
+
+	free(szBuffer);
+
+}
+
