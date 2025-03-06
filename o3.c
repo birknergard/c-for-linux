@@ -87,6 +87,11 @@ int main(int iArgC, char **apszArgV){
 	
 	Encode(szInput, lpPositionArray, szFileBuffer, iTextLength);
 
+	puts("Enter your input\n--> ");
+	fgets(szInput, MAX_BUFFER, stdin);
+
+	iInputLength = strlen(szInput);
+
 	Decode(lpPositionArray, iInputLength, szFileBuffer);
 	
 	free(szInput);
@@ -138,7 +143,7 @@ int Decode(long *lpCode, int iCodeLength, char *szFileText){
 	int i;
 	char *szDecoded;
 
-	szDecoded = (char*) malloc((sizeof(char) * iCodeLength));
+	szDecoded = (char*) malloc(sizeof(char) * iCodeLength + 1);
 	if(szDecoded == NULL)
 		return 1;
 	
@@ -151,8 +156,9 @@ int Decode(long *lpCode, int iCodeLength, char *szFileText){
 		szDecoded[i] = szFileText[lpCode[i]];
 	}
 
-	printf("The decoded code is %s\n", szDecoded);
+	szDecoded[iCodeLength - 1] = '\0';
 
+	printf("The decoded code is %s, length=%d\n", szDecoded, iCodeLength);
 	free(szDecoded);
 
 	return 0;
