@@ -81,74 +81,81 @@ int main(int iArgC, char **apszArgV){
 	iInputLength = strlen(szInput);
 	iTextLength = strlen(szFileBuffer);
 
-	lpPositionArray = (long*) malloc(sizeof(long) * iInputLength - 1);
+	lpPositionArray = (long*) malloc(sizeof(long) * iInputLength);
 	if(lpPositionArray == NULL)
 	   	return 1;
 	
-	iCurrentCharIndex = 0;
-	lPosition = 0;
-	for(i = 0; i < iTextLength; i++){
-		printf("%c", szFileBuffer[i]);
-		cTextChar = szFileBuffer[i];	
-		cInputChar = szInput[iCurrentCharIndex];
+	Encode(szInput, lpPositionArray, szFileBuffer, iTextLength);
 
-		if(lPosition == 0 && cTextChar == cInputChar){
-			lPosition = (long) i; 
-			AddPosition(lPosition, lpPositionArray, iCurrentCharIndex);
-			++iCurrentCharIndex;	
-
-		} else if(i - lPosition >= 10 && cTextChar == cInputChar){
-			lPosition = (long) i; 
-			AddPosition(lPosition, lpPositionArray, iCurrentCharIndex);
-			++iCurrentCharIndex;	
-		}
-
-	}
-
-
-	PrintCode(lpPositionArray, iInputLength);
+	Decode(lpPositionArray, iInputLength, szFileBuffer);
 	
 	free(szInput);
+	free(szFileBuffer);
 	free(lpPositionArray);
 	
 	return 0;
 }
 
 int Encode(char *szWord, long *lpCode, char *szFileText, int iFileTextLength){
+	int i;
 	int iRemainingChars = strlen(szWord);	
 	int iCurrentCharIndex = 0;
 	int lPosition = 0;
+	const int iWordLength = iRemainingChars;
 
-	for(i = 0; i < iTextLength; i++){
-		printf("%c", szFileBuffer[i]);
-		cTextChar = szFileBuffer[i];	
-		cInputChar = szInput[iCurrentCharIndex];
+	char cTextChar, cInputChar;
+
+	for(i = 0; i < iFileTextLength; i++){
+		printf("%c", szFileText[i]);
+		cTextChar = szFileText[i];	
+		cInputChar = szWord[iCurrentCharIndex];
 
 		if(lPosition == 0 && cTextChar == cInputChar){
 			lPosition = (long) i; 
-			AddPosition(lPosition, lpPositionArray, iCurrentCharIndex);
+			AddPosition(lPosition, lpCode, iCurrentCharIndex);
 			++iCurrentCharIndex;	
 			--iRemainingChars;
 
 		} else if(i - lPosition >= 10 && cTextChar == cInputChar){
 			lPosition = (long) i; 
-			AddPosition(lPosition, lpPositionArray, iCurrentCharIndex);
+			AddPosition(lPosition, lpCode, iCurrentCharIndex);
 			++iCurrentCharIndex;	
 			--iRemainingChars;
 		}
 	}
 
-	if(iRemainingChars != 0){
-		puts("Your input could not be encoded.");
+	if(iRemainingChars != 1){
+		puts("\n\nYour input could not be encoded.\n");
 		return 1;	
+	} else {
+		PrintCode(lpCode, iWordLength - 1);
+		return 0;
 	}
-
-	PrintCode(lpPositionArray, iInputLength);
-	return 0;
 }
 
-int Decode(){
-		
+int Decode(long *lpCode, int iCodeLength, char *szFileText){
+	const int iFileTextLength = strlen(szFileText) - 1;
+	int i;
+	char *szDecoded;
+
+	szDecoded = (char*) malloc((sizeof(char) * iCodeLength));
+	if(szDecoded == NULL)
+		return 1;
+	
+	for(i = 0; i < iCodeLength - 1; i++){
+		if(lpCode[i] > iFileTextLength || lpCode[i] < 0){
+			printf("Code -%d- is out of bounds.", lpCode[i]);
+			return 1;
+		}
+
+		szDecoded[i] = szFileText[lpCode[i]];
+	}
+
+	printf("The decoded code is %s\n", szDecoded);
+
+	free(szDecoded);
+
+	return 0;
 }
 
 void AddPosition(long iPosition, long *lpArray, int iIndex){
@@ -158,11 +165,9 @@ void AddPosition(long iPosition, long *lpArray, int iIndex){
 void PrintCode(long *lpArray, int iLength){
 	int i;
 
-	puts("-");
-	for(i = 0; i < iLength - 1; i++){
-		printf(" %d:%d", i, lpArray[i]);	
+	printf("\nYour code is: ");
+	for(i = 0; i < iLength; i++){
+		printf(" %d", lpArray[i]);	
 	}
-	puts(" -\n");
-	
+	printf("\n");
 }
-
