@@ -39,12 +39,12 @@ LIST NewList(void *pData);
 /*
  *  This function pushes a node into the linked list, making it the new head.
  * */
-void Push(LIST *lList, void *pData);
+void Push(LIST *lpList, void *pData);
 
 /*
  *  This function appends a node to the end of the list.
  * */
-void Append(LIST *lList, void *pData);
+void Append(LIST *lpList, void *pData);
 
 
 /*
@@ -60,6 +60,6 @@ void *Get(LIST lList, int iIndex);
 /*
  * Removes an item by its index.
  * */
-int Pop(LIST *lList, int iPosition);  
+int Pop(LIST *lList, int iIndex);  
 
 #endif

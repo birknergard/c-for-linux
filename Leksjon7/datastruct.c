@@ -66,7 +66,7 @@ void *GetValue(LIST liList, int iIndex){
 }
 
 int Pop(LIST *liList, int iIndex){
-	NODE *node;
+	NODE *noAdjacentNode, *noRemovedNode;
 	int iLength = liList->iLength;
 
 	if(iIndex >= iLength){
@@ -75,14 +75,20 @@ int Pop(LIST *liList, int iIndex){
 	}  	
 
 	if(iIndex == 0 && liList->iLength == 1){
-		free(liList->noHead);
-		liList->noHead = NULL;
+		liList->noHead-> = ;
 		liList->iLength = 0;	
+		free(liList->noHead);
 		return 0;
 	}
 
-	node = _GetNode(liList, iIndex - 1);
-	free(node);
+	noAdjacentNode = _GetNode(liList, iIndex - 1);
+	noRemovedNode = _GetNode(liList, iIndex);
+	
+	noAdjacentNode->pNext = noRemovedNode->pNext;
+	free(noRemovedNode->pData);
+	free(noRemovedNode);
+
+
 	return 0;
 
 }
