@@ -19,7 +19,7 @@ typedef struct _NODE {
  *  the head of the linked list, as well as the total length.
  * */
 typedef struct _LIST{
-    NODE noHead;
+    NODE *noHead;
     int iLength;
 } LIST;
 #pragma pack ()
@@ -28,7 +28,7 @@ typedef struct _LIST{
  * This is the constructor function for a NODE struct. It takes a generic (or void)
  * pointer as an argument, which it contains within itself.
  * */
-NODE _NewNode(void *pData);
+NODE *_NewNode(void *pData);
 
 /*
  * This is the constructor function for a LIST struct. It takes a generic (or void)
@@ -39,12 +39,12 @@ LIST NewList(void *pData);
 /*
  *  This function pushes a node into the linked list, making it the new head.
  * */
-void Push(LIST *lpList, void *pData);
+void Push(LIST *lip, void *pData);
 
 /*
  *  This function appends a node to the end of the list.
  * */
-void Append(LIST *lpList, void *pData);
+void Append(LIST *lip, void *pData);
 
 
 /*
@@ -55,11 +55,12 @@ void Append(LIST *lpList, void *pData);
  *
  *  int data = *(int) Get(LINKEDLIST, INDEX);
  * */
-void *Get(LIST lList, int iIndex);
+NODE *_GetNode(LIST *lip, int iIndex);
+void *GetValue(LIST *lip, int iIndex);
 
 /*
  * Removes an item by its index.
  * */
-int Pop(LIST *lList, int iIndex);  
+int Pop(LIST *lip, int iIndex);  
 
 #endif
