@@ -1,6 +1,6 @@
-#ifndef DATASTRUCTS_H
+#ifndef LLIST_H
 
-#define DATASTRUCTS_H
+#define LLIST_H
 
 #pragma pack (1)
 /*

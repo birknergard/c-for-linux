@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "datastruct.h"
+#include "llist.h"
 
 /*
  *	NODE is a generic struct which can hold a pointer to any data,
