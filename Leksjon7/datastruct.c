@@ -22,15 +22,12 @@ NODE *_NewNode(void *pData){
  *	LIST struct which can hold a pointer to any data,
  *	as well as a pointer to the "next" node.
  * */
-LIST *NewList(void* pData){
+LIST *NewList(){
 	LIST *liNew;
 	liNew = (LIST*) malloc(sizeof(LIST));
 
-	NODE *noHead;
-	noHead = _NewNode(pData);	
-
-	liNew->iLength = 1;
-	liNew->noHead = noHead;
+	liNew->iLength = 0;
+	liNew->noHead = NULL;
 
 	return liNew;
 }
@@ -45,9 +42,13 @@ int _FreeNode(NODE *no){
 	free(no);
 }
 
-int _FreeList(LIST *lip){
+int FreeList(LIST *lip){
 	/* for tracking current node */
 	if(lip == NULL)	return 1;
+
+	if(lip->noHead == NULL){
+		free(lip);	
+	}
 
 	NODE *noCurrent, *noNext;
 	int i;
@@ -67,10 +68,15 @@ void Push(LIST *lip, void *pData){
 	NODE *newNode;		
 	newNode = _NewNode(pData); 
 
+	if(lip->iLength == 0){
+		lip->noHead = newNode;	
+		lip->iLength++;
+		return;
+	}
+
 	newNode->pNext = lip->noHead;
 	lip->noHead = newNode;
-
-	++lip->iLength;	
+	lip->iLength++;	
 }
 
 NODE *_GetNode(LIST *lip, int iIndex){
@@ -100,10 +106,15 @@ void *GetValue(LIST *lip, int iIndex){
 int RemoveFirst(LIST *lip){
 	NODE *noCurrentHead, *noNewHead;
 
+	/*TODO: Make list be emptyable, list can be initialized as empty but still take values.*/
+	if(lip->iLength == 0){
+		printf("Cant remove element on empty list.\n");
+		return 1;
+	}
+
 	if(lip->iLength == 1){
-		lip->noHead == NULL;
-		lip->iLength = 0;	
-		return 0;
+		lip->noHead = NULL;	
+		lip->iLength = 0;
 	}
 
 	/* Holds the current head */
@@ -212,16 +223,19 @@ int main(void){
 
 	a = 1;
 	b = 2;
+	c = 3;
 
-	liStart = NewList(&a);
+	liStart = NewList();
 	if(liStart == NULL){
 		puts("DEBUG: liStart is NULL");
 		return 1;
 	}
 
-	Push(liStart, &b); 
+	Push(liStart, &a); 
+	Push(liStart, &b);
+	Push(liStart, &c);
 
-	printf("\n\n Current list:");
+	printf("\n\n Current list (%d):", liStart->iLength);
 	for(i = 0; i < liStart->iLength; i++){
 		printf(" %d", *(int*) GetValue(liStart, i));	
 	}
@@ -244,7 +258,7 @@ int main(void){
 	}
 	printf("\n");
 
-	_FreeList(liStart);
+	FreeList(liStart);
 
 	return 0;
 }

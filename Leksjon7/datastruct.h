@@ -34,7 +34,7 @@ NODE *_NewNode(void *pData);
  * This is the constructor function for a LIST struct. It takes a generic (or void)
  * pointer as an argument, which it stores within the head node.
  * */
-LIST *NewList(void *pData);
+LIST *NewList();
 
 /*
  *  This function pushes a node into the linked list, making it the new head.
