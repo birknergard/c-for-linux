@@ -70,6 +70,7 @@ Source: http://en.cppreference.com/w/c/variadic
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define MAX_BUFFER 2048 
 
@@ -101,7 +102,7 @@ void *myalloc(const char *type, ...){
 	printf("Type: [%s] -- Flag: %c", szTypeBuf, cInitFlag);
 	iCount = va_arg(args, int);
 
-	if(szTypeBuf == "int"){
+	if(strcmp(szTypeBuf, "int") == 0){
 		int *ptr;
 		ptr = (int*) malloc(sizeof(int) * iCount);	
 		if(ptr == NULL) return NULL;
@@ -114,9 +115,10 @@ void *myalloc(const char *type, ...){
 		}
 
 		va_end(args);
+		free(szTypeBuf);
 		return ptr;
 
-	} else if(szTypeBuf == "char"){
+	} else if(strcmp(szTypeBuf, "char") == 0){
 		char *ptr;
 		ptr = (char*) malloc(sizeof(char) * iCount);	
 		if(ptr == NULL) return NULL;
@@ -129,9 +131,10 @@ void *myalloc(const char *type, ...){
 		}
 
 		va_end(args);
+		free(szTypeBuf);
 		return ptr;
 		
-	} else if(szTypeBuf == "float"){
+	} else if(strcmp(szTypeBuf, "float") == 0){
 		float *ptr;
 	 	ptr = (float*) malloc(sizeof(char) * iCount);	
 		if(ptr == NULL) return NULL;
@@ -144,6 +147,7 @@ void *myalloc(const char *type, ...){
 		}
 		
 		va_end(args);
+		free(szTypeBuf);
 		return ptr;
 
 	} else {
@@ -154,9 +158,14 @@ void *myalloc(const char *type, ...){
 }
 
 int main(void){
-	int *ptr;
+	int *ptr, i;
 	ptr = (int*)myalloc("int T", 100, 10);
-	printf(" %X", ptr);
+	printf("\nPointer: %X -> ", ptr);
+
+	for(i = 0; i < 100; i++){
+		printf(" %d", ptr[i]);	
+	}
+	
 	free(ptr);
 }
 
