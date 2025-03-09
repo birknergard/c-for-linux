@@ -11,13 +11,13 @@ OBJDIR = obj
 _DEPS = source.h
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = datastruct.o
+_OBJS = o4.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-datastruct: $(OBJS)
+o4: $(OBJS)
 	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean

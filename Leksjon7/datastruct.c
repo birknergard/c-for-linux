@@ -8,11 +8,12 @@
  *	NODE is a generic struct which can hold a pointer to any data,
  *	as well as a pointer to the "next" node.
  * */
-NODE *_NewNode(void *pData){
+NODE *_NewNode(void *p){
 	NODE *nopNew; 
+
 	nopNew = (NODE*) malloc(sizeof(NODE));
 
-	nopNew->pData = pData;
+	nopNew->pData = p;
 	nopNew->pNext = NULL;
 
 	return nopNew;
@@ -104,7 +105,7 @@ void *GetValue(LIST *lip, int iIndex){
 }
 
 int RemoveFirst(LIST *lip){
-	NODE *noCurrentHead, *noNewHead;
+	NODE *noOldHead;
 
 	/*TODO: Make list be emptyable, list can be initialized as empty but still take values.*/
 	if(lip->iLength == 0){
@@ -115,21 +116,17 @@ int RemoveFirst(LIST *lip){
 	if(lip->iLength == 1){
 		lip->noHead = NULL;	
 		lip->iLength = 0;
+		return 0;
 	}
 
 	/* Holds the current head */
-	noCurrentHead = lip->noHead;
+	noOldHead = lip->noHead;
 
-	/* Holds the new head */
-	noNewHead = lip->noHead->pNext;
-	
 	/* Sets head adress to second node */
-	lip->noHead = noNewHead;
+	lip->noHead = noOldHead->pNext;
 
-	/* Deletes the previous head adress */
-	_FreeNode(noCurrentHead);
-
-
+	/* Frees the previous head adress */
+	_FreeNode(noOldHead);
 
 	/* Decreases list size */
 	lip->iLength--;
@@ -139,21 +136,22 @@ int RemoveFirst(LIST *lip){
 
 int RemoveLast(LIST *lip){
 	int i;
-	NODE *nopPenultimate, *nopTail;
+	NODE *nopOldTail, *nopNewTail;
 
 	if(lip->iLength == 0)
 		return 1;
 
 	if(lip->iLength == 1){
-		lip->noHead == NULL;
+		lip->noHead = NULL;
+		lip->iLength = 0;
 		return 0;
 	} 
 
-	nopPenultimate = _GetNode(lip, lip->iLength - 1);
-	nopTail = nopPenultimate->pNext; 
+	nopNewTail = _GetNode(lip, lip->iLength - 2);
+	nopOldTail = nopNewTail->pNext; 
 
-	_FreeNode(nopTail);
-	nopPenultimate->pNext = NULL;	
+	_FreeNode(nopOldTail);
+	nopNewTail->pNext = NULL;	
 
 	lip->iLength--;
 
@@ -219,21 +217,25 @@ int main(void){
 	printf("DEBUG1: Declaring LIST\n");
 
 	LIST *liStart;
-	int a,b,c,d,e,i;
-
-	a = 1;
-	b = 2;
-	c = 3;
+	int **ip, i;
 
 	liStart = NewList();
 	if(liStart == NULL){
 		puts("DEBUG: liStart is NULL");
 		return 1;
 	}
+		
+	
+	ip = (int**) malloc(sizeof(long*) * 100);
+	for(i = 0; i < 100; i++){
+		ip[i] = (int*) malloc(sizeof(int));
+		*ip[i] = i; 
+	}
 
-	Push(liStart, &a); 
-	Push(liStart, &b);
-	Push(liStart, &c);
+	for(i = 0; i < 100; i++){
+		Push(liStart, ip[i]);	
+	}
+
 
 	printf("\n\n Current list (%d):", liStart->iLength);
 	for(i = 0; i < liStart->iLength; i++){
@@ -251,6 +253,7 @@ int main(void){
 	}
 	printf("\n");
 
+	printf("\n Popping last value.");
 	RemoveLast(liStart);
 	printf("\n\n Current list:");
 	for(i = 0; i < liStart->iLength; i++){
@@ -259,6 +262,7 @@ int main(void){
 	printf("\n");
 
 	FreeList(liStart);
+	free(ip);
 
 	return 0;
 }
