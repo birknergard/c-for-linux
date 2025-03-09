@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "llist.h"
+/* TODO: store a bool with data indicating whether pData was malloced or not */
+/* TODO: Implement type declaration for list with LIST.szType */
 
 /*
  *	NODE is a generic struct which can hold a pointer to any data,
@@ -34,13 +37,20 @@ LIST *NewList(){
 }
 
 int _FreeNode(NODE *no){
+
+	bool bIsMalloced = 0;	
+
 	if(no == NULL){
 		puts("Cannot free null pointer.");	
 		return 1;
 	}
 
-	free(no->pData);
+	if(bIsMalloced){
+		free(no->pData);
+	}
+
 	free(no);
+	return 0;
 }
 
 int FreeList(LIST *lip){
@@ -54,7 +64,7 @@ int FreeList(LIST *lip){
 	NODE *noCurrent, *noNext;
 	int i;
 
-	noCurrent == lip->noHead;
+	noCurrent = lip->noHead;
 
 	while(noCurrent != NULL){
 		noNext = noCurrent->pNext;
@@ -69,6 +79,7 @@ void Push(LIST *lip, void *pData){
 	NODE *newNode;		
 	newNode = _NewNode(pData); 
 
+	/* If list is empty, creates new node at head */
 	if(lip->iLength == 0){
 		lip->noHead = newNode;	
 		lip->iLength++;
@@ -79,6 +90,24 @@ void Push(LIST *lip, void *pData){
 	lip->noHead = newNode;
 	lip->iLength++;	
 }
+
+void Append(LIST *lip, void *pData){
+	NODE *newNode, *noTail;
+	newNode = _NewNode(pData);
+
+	/* If list is empty, creates new node at head */
+	if(lip->iLength == 0){
+		lip->noHead = newNode;	
+		lip->iLength++;
+		return;
+	}
+
+	noTail = _GetNode(lip, lip->iLength - 1);
+	noTail->pNext = newNode;
+	lip->iLength++;
+}
+
+void Insert(LIST *lip, void *pData, int iIndex);
 
 NODE *_GetNode(LIST *lip, int iIndex){
 	int i;
@@ -158,66 +187,14 @@ int RemoveLast(LIST *lip){
 	return 0;		
 }
 
-int DeleteList(LIST *liList){
-	int i;
-	NODE *noCurrent, *noNext;
-	noCurrent = liList->noHead;
-
-	/* Freeing each node from start to end */
-	while(noCurrent->pNext != NULL){
-		noNext = noCurrent->pNext;
-		free(noCurrent->pNext);
-		free(noCurrent->pData);
-	}
-}
-
-int Remove(LIST *lip, int iIndex){
-	NODE *noAdjacent, *noRemoved;
-	int *iLength;
-	iLength = &lip->iLength;
-
-	if(iIndex >= *iLength){
-		printf("ERROR in LIST: index %d is out of bounds", iIndex);
-		return 1;	
-	}  	
-
-	if(iIndex == 0){
-		if(lip->iLength == 1){
-			lip->noHead->pNext = NULL;
-			lip->noHead->pData = NULL;
-			*iLength = 0; 
-			return 0;
-		}
-		
-		/* Sets head to adjacent node when removed */
-		lip->noHead = lip->noHead->pNext;
-		lip->noHead->pNext = NULL;
-		--*iLength;
-		return 0;
-	}
-
-	if(iIndex == *iLength){
-		noAdjacent = _GetNode(lip, *iLength - 1);
-		noAdjacent->pNext == NULL;	
-		--*iLength;
-
-		return 0;		
-	}
-
-	noAdjacent = _GetNode(lip, iIndex - 1);
-	noRemoved = _GetNode(lip, iIndex);
-	
-	noAdjacent->pNext = noRemoved->pNext;
-
-	return 0;
-}
-
 /* For testing */
 int main(void){
 	printf("DEBUG1: Declaring LIST\n");
 
 	LIST *liStart;
-	int **ip, i;
+	int **ip, i, a;
+
+	a = 25;
 
 	liStart = NewList();
 	if(liStart == NULL){
@@ -244,8 +221,14 @@ int main(void){
 	printf("\n");
 
 
-	printf("\n\n Popping first value.");
+	printf("\n\n Popping first two values.");
 	RemoveFirst(liStart);
+	RemoveFirst(liStart);
+
+	printf("\n Popping last three values.");
+	RemoveLast(liStart);
+	RemoveLast(liStart);
+	RemoveLast(liStart);
 
 	printf("\n\n Current list:");
 	for(i = 0; i < liStart->iLength; i++){
@@ -253,8 +236,9 @@ int main(void){
 	}
 	printf("\n");
 
-	printf("\n Popping last value.");
-	RemoveLast(liStart);
+	printf("\n Appending 25 to end of list.");
+	Append(liStart, &a);
+
 	printf("\n\n Current list:");
 	for(i = 0; i < liStart->iLength; i++){
 		printf(" %d", *(int*) GetValue(liStart, i));	
@@ -262,6 +246,9 @@ int main(void){
 	printf("\n");
 
 	FreeList(liStart);
+
+	for(i = 0; i < 100; i++)
+		free(ip[i]);	
 	free(ip);
 
 	return 0;

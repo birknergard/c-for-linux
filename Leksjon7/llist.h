@@ -9,6 +9,7 @@
  * */
 typedef struct _NODE {
     struct _NODE *pNext;
+	    bool bIsHeapMemory; /* Stores metadata, whether pData is heap or stack allocated*/
 	    void *pData; /* Creates an generic pointer to the data instead of holding the data itself*/
 } NODE;
 #pragma pack ()
@@ -20,6 +21,7 @@ typedef struct _NODE {
  * */
 typedef struct _LIST{
     NODE *noHead;
+    char *szType;
     int iLength;
 } LIST;
 #pragma pack ()
@@ -27,12 +29,14 @@ typedef struct _LIST{
 /*
  * This is the constructor function for a NODE struct. It takes a generic (or void)
  * pointer as an argument, which it contains within itself.
+ * Returns a memory adress containing a NODE struct.
  * */
 NODE *_NewNode(void *pData);
 
 /*
  * This is the constructor function for a LIST struct. It takes a generic (or void)
  * pointer as an argument, which it stores within the head node.
+ * Returns a memory adress containing a LIST struct.
  * */
 LIST *NewList();
 
@@ -48,19 +52,20 @@ void Append(LIST *lip, void *pData);
 
 
 /*
- *  This function retrieves the data of a node given its position (or index) in the list.
+ *  This function retrieves the data of a node given its position (0 indexing) in the list.
  *  This data is (for now) retrieved in the form of a void pointer which needs to be
  *  explicitly cast and dereferenced manually. For example, given a linked list "L":
- *  
  *
  *  int data = *(int) Get(LINKEDLIST, INDEX);
  * */
-NODE *_GetNode(LIST *lip, int iIndex);
 void *GetValue(LIST *lip, int iIndex);
 
-/*
- * Removes an item by its index.
- * */
-int Pop(LIST *lip, int iIndex);  
+
+NODE *_GetNode(LIST *lip, int iIndex);
+
+int RemoveFirst(LIST *lip, int iIndex);  
+
+int RemoveLast(LIST *lip, int iIndex);  
+
 
 #endif
