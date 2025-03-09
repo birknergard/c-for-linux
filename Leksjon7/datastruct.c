@@ -41,19 +41,25 @@ int _FreeNode(NODE *no){
 		return 1;
 	}
 
-	if(no->pNext != NULL)
-		free(no->pNext);
-
-	/*free(no->pData);*/
+	free(no->pData);
+	free(no);
 }
 
 int _FreeList(LIST *lip){
 	/* for tracking current node */
+	if(lip == NULL)	return 1;
+
+	NODE *noCurrent, *noNext;
 	int i;
-	for(i = 0; i < lip->iLength; i++){
-		free(_GetNode(lip, i));	
+
+	noCurrent == lip->noHead;
+
+	while(noCurrent != NULL){
+		noNext = noCurrent->pNext;
+		_FreeNode(noCurrent);
+		noCurrent = noNext;
 	}
-	free(lip->noHead);
+
 	free(lip);
 }
 
@@ -93,19 +99,26 @@ void *GetValue(LIST *lip, int iIndex){
 
 int RemoveFirst(LIST *lip){
 	NODE *noCurrentHead, *noNewHead;
-	noCurrentHead = lip->noHead;
-	noNewHead = lip->noHead->pNext;
 
 	if(lip->iLength == 1){
-		_FreeNode(noCurrentHead);
+		lip->noHead == NULL;
 		lip->iLength = 0;	
 		return 0;
 	}
+
+	/* Holds the current head */
+	noCurrentHead = lip->noHead;
+
+	/* Holds the new head */
+	noNewHead = lip->noHead->pNext;
 	
-	/* Sets head to second node */
+	/* Sets head adress to second node */
 	lip->noHead = noNewHead;
-	/* Deletes the previous head node */
+
+	/* Deletes the previous head adress */
 	_FreeNode(noCurrentHead);
+
+
 
 	/* Decreases list size */
 	lip->iLength--;
@@ -115,18 +128,20 @@ int RemoveFirst(LIST *lip){
 
 int RemoveLast(LIST *lip){
 	int i;
-	NODE *nopPenultimate;
-	nopPenultimate = _GetNode(lip, lip->iLength);
+	NODE *nopPenultimate, *nopTail;
 
 	if(lip->iLength == 0)
 		return 1;
 
 	if(lip->iLength == 1){
-		_FreeNode(lip->noHead);
+		lip->noHead == NULL;
 		return 0;
 	} 
 
-	_FreeNode(nopPenultimate->pNext);
+	nopPenultimate = _GetNode(lip, lip->iLength - 1);
+	nopTail = nopPenultimate->pNext; 
+
+	_FreeNode(nopTail);
 	nopPenultimate->pNext = NULL;	
 
 	lip->iLength--;
@@ -205,7 +220,6 @@ int main(void){
 	}
 
 	Push(liStart, &b); 
-	
 
 	printf("\n\n Current list:");
 	for(i = 0; i < liStart->iLength; i++){
