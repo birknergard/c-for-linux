@@ -1,7 +1,7 @@
+#include "dbglog.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "dbglog.h"
 
 void DbgLogger(unsigned long ulErrorType, int iLine, const char *szFile,
 			   const char *pszFormat, ...){

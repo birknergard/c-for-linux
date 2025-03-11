@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "./include/dbglog.h"
+#include "dbglog.h"
 
 int main(void){
 
