@@ -8,16 +8,16 @@ CFLAGS += -std=c89
 
 OBJDIR = obj
 
-_DEPS = source.h
+_DEPS = dbglog.h
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = llist.o
+_OBJS = main.o 
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-llist: $(OBJS)
+main: $(OBJS)
 	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
