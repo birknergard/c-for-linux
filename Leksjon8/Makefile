@@ -4,20 +4,21 @@ INCLDIR = ./include
 CC = gcc
 CFLAGS = -O2
 CFLAGS += -I $(INCLDIR)
-CFLAGS += -std=c89
+CFLAGS += -lpthread
+#CFLAGS += -std=c89
 
 OBJDIR = obj
 
-_DEPS = dbglog.h
+_DEPS = default.h
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = main.o dbglog.o	
+_OBJS = o5.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
-$(OBJDIR)/%.o: %.c $(DEPS)
+$(OBJDIR)/%.o: %.c $(DEPS) 
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-main: $(OBJS)
+o5: $(OBJS)
 	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
