@@ -15,8 +15,8 @@
 typedef struct {
 	char *szBuffer;
 	FILE *f;
-	sem_t *semWorkerDone;
-	sem_t *semPrinterDone;
+	sem_t semWorkerDone;
+	sem_t semPrinterDone;
 	int iExitStatus;
 
 } THREAD_DATA;
@@ -27,15 +27,14 @@ void *WorkerThread(void *pThreadData){
 	THREAD_DATA *td = (THREAD_DATA *) pThreadData;
 
 	while(td->iExitStatus == 0){
-		sem_wait(td->semPrinterDone);
+		sem_wait(&td->semPrinterDone);
 
 		if(td->iExitStatus == 1)
 			break;	
 
-
 		fprintf(td->f, "%s", td->szBuffer);
 
-		sem_post(td->semWorkerDone);
+		sem_post(&td->semWorkerDone);
 	}
 
 	return NULL;
@@ -53,47 +52,44 @@ int main(void){
 	td = (THREAD_DATA*)malloc(sizeof(THREAD_DATA));
 	if(td == NULL) return 1;
 
-	td->semWorkerDone = (sem_t*) malloc(sizeof(sem_t));
-	if(td->semWorkerDone == NULL) return 1;
-
-	td->semPrinterDone = (sem_t*) malloc(sizeof(sem_t));
-	if(td->semPrinterDone == NULL) return 1;
-
 	td->szBuffer = (char *)malloc(11);
+	if(td->szBuffer == NULL) return 1;
 
-	sem_init(td->semWorkerDone, 0, 0);
-	sem_init(td->semPrinterDone, 0, 0);
+	sem_init(&td->semWorkerDone, 0, 0);
+	sem_init(&td->semPrinterDone, 0, 0);
 
-	printf("Enter some text: ");
-	td->f = fopen("./o6_text.txt", "r+");
+	td->f = fopen("./o6_text.txt", "w+");
 
 	pthread_create(&tpWorkerThread, NULL, WorkerThread, (void*) td);
 
+	td->iExitStatus = 0;
 	while(td->iExitStatus == 0){
+		printf("Enter some text: ");
 		fgets(szInputBuffer, MAX_BUFFER, stdin);
 
 		if(strcmp(szInputBuffer, "quit") == 0){
 			td->iExitStatus = 1;	
 		}
 
-		do{
-			sem_wait(td->semWorkerDone);
-			strncpy(td->szBuffer, szInputBuffer, 10);
+		iSliceStart = 0;
 
-			/* TODO: Use ptr arithmetic instead of indexing */
+		do{
+			sem_wait(&td->semWorkerDone);
+			strncpy(td->szBuffer, szInputBuffer, 10);
+			td->szBuffer[11] = '\0';
+
 			iSliceStart += 10;
 
-			sem_post(td->semPrinterDone);
-		} while(iSliceStart <= strlen(szInputBuffer));
+			sem_post(&td->semPrinterDone);
+
+		} while(iSliceStart < strlen(szInputBuffer));
 	}
 	
 	pthread_join(tpWorkerThread, NULL);
-	sem_destroy(td->semPrinterDone);
-	sem_destroy(td->semWorkerDone);
-	fclose(td->f);
+	sem_destroy(&td->semPrinterDone);
+	sem_destroy(&td->semWorkerDone);
 
-	free(td->semPrinterDone);
-	free(td->semWorkerDone);
+	fclose(td->f);
 	free(td);
 	
 	return 0;
