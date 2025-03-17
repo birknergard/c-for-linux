@@ -9,7 +9,6 @@
 #include <string.h>
 
 #define MAX_BUFFER 4096
-#define BUFFER 
 
 #pragma pack (1)
 typedef struct {
@@ -41,56 +40,87 @@ void *WorkerThread(void *pThreadData){
 }
 
 int main(void){
+
+	/* Declare variables/pointers */
 	THREAD_DATA *td;
 	pthread_t tpWorkerThread;
 	char *szInputBuffer;
 	int iSliceStart;
 
+	/* Allocate for pointers, verify allocation */
 	szInputBuffer = (char*) malloc(MAX_BUFFER);
 	if(szInputBuffer == NULL) return 1;
 
-	td = (THREAD_DATA*)malloc(sizeof(THREAD_DATA));
+	td = (THREAD_DATA*) malloc(sizeof(THREAD_DATA));
 	if(td == NULL) return 1;
 
-	td->szBuffer = (char *)malloc(11);
+	td->szBuffer = (char *) malloc(11);
 	if(td->szBuffer == NULL) return 1;
 
+	/* Initialize semaphores */
 	sem_init(&td->semWorkerDone, 0, 0);
 	sem_init(&td->semPrinterDone, 0, 0);
 
-	td->f = fopen("./o6_text.txt", "w+");
+	/* Open textfile for write */
+	td->f = fopen("o6_text.txt", "w");
+	if(td->f == NULL) return 1;
 
+	/* Initialize exit status to 0 (false) */
+	td->iExitStatus = 0;
+
+	/* Start worker thread */
 	pthread_create(&tpWorkerThread, NULL, WorkerThread, (void*) td);
 
-	td->iExitStatus = 0;
 	while(td->iExitStatus == 0){
-		printf("Enter some text: ");
+
+		/* Take user input */
+		puts("Enter some text (type \"exit\" to end program): ");
 		fgets(szInputBuffer, MAX_BUFFER, stdin);
 
-		if(strcmp(szInputBuffer, "quit") == 0){
-			td->iExitStatus = 1;	
+		/* If input is "quit" the a signal is sent to worker thread early*/
+		if(strcmp(szInputBuffer, "exit\n") == 0){
+			td->iExitStatus = 1;
 		}
 
-		iSliceStart = 0;
-
-		do{
-			sem_wait(&td->semWorkerDone);
-			strncpy(td->szBuffer, szInputBuffer, 10);
-			td->szBuffer[11] = '\0';
-
-			iSliceStart += 10;
-
+		if(td->iExitStatus != 0){
 			sem_post(&td->semPrinterDone);
+			break;
 
-		} while(iSliceStart < strlen(szInputBuffer));
+		} else {
+		
+			/* initialize startindex to copy from */
+			iSliceStart = 0;
+			while(iSliceStart < strlen(szInputBuffer)){
+
+				/* Copy 10 characters from userinput to buffer */
+				strncpy(td->szBuffer, (szInputBuffer + iSliceStart), 10);
+				printf("buf:%s", td->szBuffer);
+				td->szBuffer[10] = '\0';
+
+				/* Signal to worker thread that input is ready to be parsed */
+				sem_post(&td->semPrinterDone);
+
+				/* Wait until workerthread is done parsing input */
+				sem_wait(&td->semWorkerDone);
+
+				/* Flag the next 10 characters for copy */
+				iSliceStart += 10;
+			} 
+		}
 	}
 	
+	/* Close worker thread, destroy semaphores */
 	pthread_join(tpWorkerThread, NULL);
 	sem_destroy(&td->semPrinterDone);
 	sem_destroy(&td->semWorkerDone);
 
+	/* Close the text file */
 	fclose(td->f);
+
+	/* Free pointers */
+	free(td->szBuffer);
 	free(td);
+	free(szInputBuffer);
 	
 	return 0;
 }
