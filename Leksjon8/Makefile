@@ -12,13 +12,13 @@ OBJDIR = obj
 _DEPS = default.h
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = o2.o
+_OBJS = o3.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS) 
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-o2: $(OBJS)
+o3: $(OBJS)
 	gcc -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
