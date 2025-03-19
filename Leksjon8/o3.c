@@ -15,7 +15,8 @@ elements exactly
 
 #pragma pack (1)
 typedef struct {
-	int *iarr;
+	unsigned int *iarr;
+	unsigned int *ipWriter;
 	unsigned int iCurrentPosition;
 
 
@@ -24,8 +25,8 @@ typedef struct {
 
 void ringbuf_init(RING_BUFFER *pRingBuffer){
 	printf("Initializing.\n");
-	pRingBuffer = (RING_BUFFER*) malloc(sizeof(RING_BUFFER));
-	pRingBuffer->iarr = (int *) malloc(sizeof(int) * 8);
+	pRingBuffer->iarr = (unsigned int *) malloc(sizeof(unsigned int) * 8);
+	pRingBuffer->ipWriter = &pRingBuffer->iarr[0];
 	pRingBuffer->iCurrentPosition = 0;
 }
 
@@ -35,17 +36,14 @@ void ringbuf_destroy(RING_BUFFER *pRingBuffer){
 }
 
 void ringbuf_write(RING_BUFFER *pRingBuffer, int iValue){
-	printf("DEBUG: Writing ...\n");
-	
-	pRingBuffer->iarr[pRingBuffer->iCurrentPosition] = iValue;
+	*pRingBuffer->ipWriter = iValue;
 }
 
-int ringbuf_read(RING_BUFFER *pRingBuffer){
-	return pRingBuffer->iarr[pRingBuffer->iCurrentPosition];
+unsigned int ringbuf_read(RING_BUFFER *pRingBuffer){
+	return *pRingBuffer->ipWriter;
 }
 
 void ringbuf_shift(RING_BUFFER *pRingBuffer, int iShiftInput){
-	printf("DEBUG: Starting shift\n");
 	int iPosition, iShiftBy, i;
 
 	iPosition = pRingBuffer->iCurrentPosition;
@@ -61,8 +59,7 @@ void ringbuf_shift(RING_BUFFER *pRingBuffer, int iShiftInput){
 	}
 	
 	/* Shifting n times, negative or positive only indicates direction */
-	for(i = 0; i > abs(iShiftInput); i++){
-		printf("DEBUG: Shifting ...\n");
+	for(i = 0; i < abs(iShiftInput); i++){
 		/* Behavior is different when number is negative... */
 		if(iShiftInput < 0){
 			if(iPosition == -1){
@@ -81,11 +78,15 @@ void ringbuf_shift(RING_BUFFER *pRingBuffer, int iShiftInput){
 	}
 
 	pRingBuffer->iCurrentPosition = iPosition;
+	pRingBuffer->ipWriter = &pRingBuffer->iarr[iPosition];
 }
 
 
 int main(void){
 	RING_BUFFER *pRingBuffer;
+	pRingBuffer = (RING_BUFFER*) malloc(sizeof(RING_BUFFER));
+	if(pRingBuffer == NULL) return 1;
+
 	int i;
 
 	ringbuf_init(pRingBuffer);
@@ -96,12 +97,23 @@ int main(void){
 
 	printf("RingBuffer: ");
 	for(i = 0; i < 8; i++){
-		ringbuf_shift(pRingBuffer, 1);	
 		printf(" %d", ringbuf_read(pRingBuffer));
+		ringbuf_shift(pRingBuffer, 1);	
 	}
 	printf("\n");
-	
 
+	ringbuf_shift(pRingBuffer, 50); /* should shift by 2*/;
+	printf("shift by 50 %d\n", ringbuf_read(pRingBuffer));
+	
+	ringbuf_shift(pRingBuffer, -12); /* Should shift left by 4 */
+	printf("shift by -12 %d\n", ringbuf_read(pRingBuffer));
+
+	ringbuf_shift(pRingBuffer, -3); /* Should shift left by 4 */
+	printf("shift by -3 %d\n", ringbuf_read(pRingBuffer));
+
+	ringbuf_shift(pRingBuffer, 4); /* Should shift left by 4 */
+	printf("shift by 4 %d\n", ringbuf_read(pRingBuffer));
+	
 	ringbuf_destroy(pRingBuffer);
 
 	return 0;
