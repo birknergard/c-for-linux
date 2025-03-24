@@ -146,7 +146,7 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
          printf("DEBUG: %s is lower than %s, inserting ->\n", pNewNode->pszKey, pCurrent->pszKey);
          // if pointing to head node
          if(pCurrent == pHead){
-            pNewNode->pNext = pCurrent;
+            pNewNode->pNext = pHead;
             pHead = pNewNode;
             return 0;
          }  
