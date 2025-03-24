@@ -1,126 +1,63 @@
 /*
- * Implement multithreading using somaphores
+ *
+Exercise 6 (optional):
+
+Discrete integral is simply performed by several ways. One approximation[trapezoidal] is given in the image.
+
+http://upload.wikimedia.org/math/4/9/9/499f1d0a17ada2158b49754019f0dc14.png
+
+(See also https://en.wikipedia.org/wiki/Numerical_integration)
+
+Write a function that has the form
+
+float integral(float (*fn)(float x), float a, float b, int n)
+
+which takes in a function that has one floating point argument and return a floating point integrated value.
+
+Once you have the function. Find the integral of f(x) = x, f(x) = x*x
+
+
+Write a program that uses the integration function for several intervals - a = [0-1000] b = [1000-2000]
+
+You function should output a vector out[1000][1000] where,
+
+out[0][0] is integration value when a = 0, b = 1000
+out[1][0] is integration value when a = 1, b = 1000
+....
+i[999][999] is integration value when a = 999 and b = 1999
+
+See the two dimensions!
+Now try to see how long it takes to accomplish this.. Your progamming loop should look like this
+
+
+
+
+
+
+
+
+
+
+
+
+for(int i=0;i<1000;i++){
+	for(int j=0;j<1000;j++){
+		outp[i][j] = integral(fn, a[i], b[j], 100);
+	}
+}
+
+Try to make this multithreaded -
+
+- One thread per one outer loop[j integrals] and hence only 1000 threads
+- One thread per one integral and hence 1000x1000 threads
+
+You can try to see the performance gain and the resource usage in top, htop
  * */
-
-#include <stdio.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <semaphore.h>
-#include <string.h>
-
-#define MAX_BUFFER 4096
-
-#pragma pack (1)
-typedef struct {
-	char *szBuffer;
-	FILE *f;
-	sem_t semWorkerDone;
-	sem_t semPrinterDone;
-	int iExitStatus;
-
-} THREAD_DATA;
-
-#pragma pack()
-
-void *WorkerThread(void *pThreadData){
-	THREAD_DATA *td = (THREAD_DATA *) pThreadData;
-
-	while(td->iExitStatus == 0){
-		sem_wait(&td->semPrinterDone);
-
-		if(td->iExitStatus == 1)
-			break;	
-
-		fprintf(td->f, "%s", td->szBuffer);
-
-		sem_post(&td->semWorkerDone);
-	}
-
-	return NULL;
+float inner(float a, b){
+	
 }
 
-int main(void){
-
-	/* Declare variables/pointers */
-	THREAD_DATA *td;
-	pthread_t tpWorkerThread;
-	char *szInputBuffer;
-	int iSliceStart;
-
-	/* Allocate for pointers, verify allocation */
-	szInputBuffer = (char*) malloc(MAX_BUFFER);
-	if(szInputBuffer == NULL) return 1;
-
-	td = (THREAD_DATA*) malloc(sizeof(THREAD_DATA));
-	if(td == NULL) return 1;
-
-	td->szBuffer = (char *) malloc(11);
-	if(td->szBuffer == NULL) return 1;
-
-	/* Initialize semaphores */
-	sem_init(&td->semWorkerDone, 0, 0);
-	sem_init(&td->semPrinterDone, 0, 0);
-
-	/* Open textfile for write */
-	td->f = fopen("o6_text.txt", "w");
-	if(td->f == NULL) return 1;
-
-	/* Initialize exit status to 0 (false) */
-	td->iExitStatus = 0;
-
-	/* Start worker thread */
-	pthread_create(&tpWorkerThread, NULL, WorkerThread, (void*) td);
-
-	while(td->iExitStatus == 0){
-
-		/* Take user input */
-		puts("Enter some text (type \"exit\" to end program): ");
-		fgets(szInputBuffer, MAX_BUFFER, stdin);
-
-		/* If input is "quit" the a signal is sent to worker thread early*/
-		if(strcmp(szInputBuffer, "exit\n") == 0){
-			td->iExitStatus = 1;
-		}
-
-		if(td->iExitStatus != 0){
-			sem_post(&td->semPrinterDone);
-			break;
-
-		} else {
-		
-			/* initialize startindex to copy from */
-			iSliceStart = 0;
-			while(iSliceStart < strlen(szInputBuffer)){
-
-				/* Copy 10 characters from userinput to buffer */
-				strncpy(td->szBuffer, (szInputBuffer + iSliceStart), 10);
-				printf("buf:%s", td->szBuffer);
-				td->szBuffer[10] = '\0';
-
-				/* Signal to worker thread that input is ready to be parsed */
-				sem_post(&td->semPrinterDone);
-
-				/* Wait until workerthread is done parsing input */
-				sem_wait(&td->semWorkerDone);
-
-				/* Flag the next 10 characters for copy */
-				iSliceStart += 10;
-			} 
-		}
-	}
-	
-	/* Close worker thread, destroy semaphores */
-	pthread_join(tpWorkerThread, NULL);
-	sem_destroy(&td->semPrinterDone);
-	sem_destroy(&td->semWorkerDone);
-
-	/* Close the text file */
-	fclose(td->f);
-
-	/* Free pointers */
-	free(td->szBuffer);
-	free(td);
-	free(szInputBuffer);
-	
-	return 0;
+float integral(float (*fn), float a, float b, int n){
+			
 }
+

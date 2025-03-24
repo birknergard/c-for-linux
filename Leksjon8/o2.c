@@ -33,19 +33,27 @@ void PrintBin(unsigned short uiInput){
 }
 
 void InvertCharBits(char c){
-	printf("char before conversion -> %c", c);
-	int iCharBits = (int) c;
-
-
+	printf("char before conversion ->\n");
+	PrintBin((unsigned short) c); 
+	char cFlipped;
+	cFlipped = ~c;
 	
-	printf("char after conversion -> %c", iCharBits);
-
-
+	printf("char after conversion ->\n");
+	PrintBin((unsigned short) cFlipped);
 }
 
 int main(void){
+
+	int iTest, iShifted;
+	iTest = 128;
+	iShifted = iTest >> 5;
+
+	PrintBin(iTest);
 	PrintBin(105);
+
 	PrintBin(520);
+
+	InvertCharBits('0');			
 
 	return 0;
 }
