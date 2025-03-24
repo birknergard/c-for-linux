@@ -7,8 +7,11 @@ int main(void){
    LIST *pHead = NULL; 
 
    pHead = CreateList("B", 'I', 205);
+   PrintList(pHead);
 
    InsertSorted(pHead, "A", 'I', 521);
+
+   PrintList(pHead);
 
    InsertSorted(pHead, "D", 'S', "Hello world!");
 

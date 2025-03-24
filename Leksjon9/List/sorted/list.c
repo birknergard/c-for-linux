@@ -62,7 +62,6 @@ LIST *CreateList(char *szKey, char cFlag, ...){
       if(cFlag == 'S'){
          pList->pszValue = (char*) malloc(MAX_DATA);
          char *szInputStr = va_arg(vaData, char*);
-         printf("Input string on key %s: %s", szKey, szInputStr);
 
          if(pList->pszValue != NULL){
             strncpy(pList->pszValue, szInputStr, (strlen(szInputStr) > MAX_DATA ? MAX_DATA : strlen(szInputStr)));
@@ -123,7 +122,7 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
 
    } else if(cFlag == 'S'){
       char *szInputValue = va_arg(vaData, char*);
-      pNewNode = CreateList(szKey, cFlag, *szInputValue); 
+      pNewNode = CreateList(szKey, cFlag, szInputValue); 
 
    } else {
       printf("Invalid type flag.\n");
@@ -134,6 +133,7 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
    while(pCurrent != NULL){
       if(strcmp(pNewNode->pszKey, pCurrent->pszKey) >= 0){
          // If higher value, go next, unless there is no null
+         printf("DEBUG: %s is higher or equal to %s, passing ->\n", pNewNode->pszKey, pCurrent->pszKey);
          if(pCurrent->pNext == NULL){
             pCurrent->pNext = pNewNode;
             return 0;
@@ -143,9 +143,10 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
          pCurrent = pCurrent->pNext;       
 
       } else {
+         printf("DEBUG: %s is lower than %s, inserting ->\n", pNewNode->pszKey, pCurrent->pszKey);
          // if pointing to head node
          if(pCurrent == pHead){
-            pNewNode->pNext = pHead;
+            pNewNode->pNext = pCurrent;
             pHead = pNewNode;
             return 0;
          }  
