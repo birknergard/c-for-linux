@@ -54,8 +54,8 @@ typedef struct _LIST {
 
 // Prototypes - functions return OK or ERROR.
 LIST *CreateList(char *szKey, char cFlag, ...);
-int FreeList(LIST *pHead);
-int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...);
+int FreeList(LIST **ppHead);
+int InsertSorted(LIST **pHead, char *szKey, char cFlag, ...);
 
 /*
  * How to handle num / string type

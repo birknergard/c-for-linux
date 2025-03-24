@@ -84,32 +84,29 @@ LIST *CreateList(char *szKey, char cFlag, ...){
    return pList;
 }
 
-int FreeList(LIST *pHead){
-   if(pHead->pNext == NULL){
-      free(pHead); 
-      return 0;
-   }
+int FreeList(LIST **ppHead){
 
-   LIST *pCurrent = NULL;   
-   LIST *pNext = pHead->pNext;
+   LIST *pCurrent = *ppHead;   
+   LIST *pTemp = NULL;
 
-   while(pNext != NULL){
-      pCurrent = pNext;
-      free(pNext->pszKey);
+   while(pCurrent != NULL){
+      printf("Freeing node with key %s. \n", pCurrent->pszKey);
+      free(pCurrent->pszKey);
 
-      if(pNext->pszValue != NULL){
-         free(pNext->pszValue);
+      if(pCurrent->pszValue != NULL){
+         free(pCurrent->pszValue);
       }
       
-      pNext = pCurrent->pNext;
-      free(pCurrent);
+      pTemp = pCurrent;
+      pCurrent = pCurrent->pNext;
+      free(pTemp);
    }
 
 }
 
-int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
+int InsertSorted(LIST **ppHead, char *szKey, char cFlag, ...){
    va_list vaData; 
-   LIST *pCurrent = pHead;
+   LIST *pCurrent = *ppHead;
    LIST *pPrev = NULL;
    LIST *pNewNode = NULL;
 
@@ -133,7 +130,6 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
    while(pCurrent != NULL){
       if(strcmp(pNewNode->pszKey, pCurrent->pszKey) >= 0){
          // If higher value, go next, unless there is no null
-         printf("DEBUG: %s is higher or equal to %s, passing ->\n", pNewNode->pszKey, pCurrent->pszKey);
          if(pCurrent->pNext == NULL){
             pCurrent->pNext = pNewNode;
             return 0;
@@ -143,11 +139,10 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
          pCurrent = pCurrent->pNext;       
 
       } else {
-         printf("DEBUG: %s is lower than %s, inserting ->\n", pNewNode->pszKey, pCurrent->pszKey);
          // if pointing to head node
-         if(pCurrent == pHead){
-            pNewNode->pNext = pHead;
-            pHead = pNewNode;
+         if(pCurrent == *ppHead){
+            pNewNode->pNext = *ppHead;
+            *ppHead = pNewNode;
             return 0;
          }  
 
