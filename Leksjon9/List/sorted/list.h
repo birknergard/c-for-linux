@@ -48,14 +48,14 @@ typedef struct _LIST {
    struct _LIST *pNext;
    char *pszKey;
    char *pszValue;
-   int *piValue;
+   int iValue;
 } LIST;
 #pragma pack()
 
 // Prototypes - functions return OK or ERROR.
 LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...);
 int FreeList(LIST *pHead);
-int InsertSorted(LIST *pHead, char *szKey, char cFlag, int iDataSize, ...);
+int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...);
 
 /*
  * How to handle num / string type

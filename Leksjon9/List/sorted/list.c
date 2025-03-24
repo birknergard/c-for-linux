@@ -53,7 +53,7 @@ LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...){
    LIST *pList;
    va_start(vaData, iDataSize);
 
-   pList = (LIST *) malloc(sizeof(LIST) + MAX_KEY + MAX_DATA);
+   pList = (LIST *) malloc(sizeof(LIST));
    if(pList != NULL){
 
       pList->pszKey = (char*) malloc(MAX_KEY);
@@ -64,7 +64,7 @@ LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...){
 
 
       if(cFlag == 'S'){
-         pList->pszValue = (char*) malloc(iDataSize);
+         pList->pszValue = (char*) malloc(MAX_DATA);
          char *inputStr = va_arg(vaData, char*);
 
          if(pList->pszValue != NULL){
@@ -73,18 +73,15 @@ LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...){
 
 
       } else if(cFlag == 'I'){
-         int iInput = va_arg(vaData, int);
-
-         pList->piValue = (int*) malloc(sizeof(int));
-         if(pList->piValue != NULL){
-            *pList->piValue = iInput;
-         }
+         pList->pszValue = NULL;
+         pList->iValue = va_arg(vaData, int);
+      
+      }  else {
+         printf("ERROR! Invalid type flag.\n"); 
+         va_end(vaData);
+         return NULL;
       }
 
-   } else {
-      printf("ERROR! Invalid type flag.\n"); 
-      va_end(vaData);
-      return NULL;
    }
 
    va_end(vaData);
@@ -107,10 +104,6 @@ int FreeList(LIST *pHead){
       if(pNext->pszValue != NULL){
          free(pNext->pszValue);
       }
-
-      if(pNext->piValue){
-         free(pNext->piValue);
-      }
       
       pNext = pCurrent->pNext;
       free(pCurrent);
@@ -123,7 +116,7 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
    LIST *pCurrent = pHead;
    LIST *pPrev = NULL;
 
-   va_start(vaData, iDataSize);
+   va_start(vaData, cFlag);
    LIST *pNewNode = CreateList(szKey, cFlag, MAX_DATA, vaData); 
 
    // Check if input is string or int
@@ -160,12 +153,10 @@ void PrintList (LIST *pList){
    LIST *pThis = pList;
    int i = 0;
    while (pThis != NULL) {
-      if(pThis->piValue != NULL){
+      if(pThis->pszValue == NULL){
+         printf ("%d: %s - %d\n", ++i, pThis->pszKey, pThis->iValue);
+      } else {
          printf ("%d: %s - %s\n", ++i, pThis->pszKey, pThis->pszValue);
-      } 
-
-      if(pThis->pszValue != NULL){
-         //printf ("%d: %s - %d\n", ++i, pThis->pszKey, *pThis->piValue);
       }
       pThis = pThis->pNext;
    }
