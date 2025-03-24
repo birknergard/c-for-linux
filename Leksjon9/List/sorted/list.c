@@ -51,8 +51,10 @@ LIST *CreateList(char *szKey, char cFlag, ...){
 
    pList = (LIST *) malloc(sizeof(LIST));
    if(pList != NULL){
-
+      
+      pList->pNext = NULL;
       pList->pszKey = (char*) malloc(MAX_KEY);
+
       if(pList->pszKey != NULL){
          strncpy(pList->pszKey, szKey, 31);
          pList->pszKey[31] = '\0';
@@ -158,7 +160,7 @@ int InsertSorted(LIST **ppHead, char *szKey, char cFlag, ...){
 void PrintList (LIST *pList){
    LIST *pThis = pList;
    int i = 0;
-   while (pThis != NULL) {
+   while (pThis->pNext != NULL) {
       if(pThis->pszValue == NULL){
          printf ("%d: %s - %d\n", ++i, pThis->pszKey, pThis->iValue);
       } else {
