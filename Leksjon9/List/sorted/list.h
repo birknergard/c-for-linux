@@ -53,7 +53,7 @@ typedef struct _LIST {
 #pragma pack()
 
 // Prototypes - functions return OK or ERROR.
-LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...);
+LIST *CreateList(char *szKey, char cFlag, ...);
 int FreeList(LIST *pHead);
 int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...);
 

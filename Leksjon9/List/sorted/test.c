@@ -6,17 +6,15 @@
 int main(void){
    LIST *pHead = NULL; 
 
-   pHead = CreateList("A", 'I', sizeof(int), 205);
+   pHead = CreateList("B", 'I', 205);
 
-   PrintList(pHead);
+   InsertSorted(pHead, "A", 'I', 521);
 
-   InsertSorted(pHead, "B", 'I', sizeof(int), 521);
+   InsertSorted(pHead, "D", 'S', "Hello world!");
 
-   PrintList(pHead);
+   InsertSorted(pHead, "C", 'S', "MY beloved");
 
-   InsertSorted(pHead, "D", 'I', sizeof(int), 123);
-
-   InsertSorted(pHead, "C", 'I', sizeof(int), 456);
+   InsertSorted(pHead, "C", 'I', 42);
    
    PrintList(pHead);
 

@@ -42,16 +42,12 @@ pair file in the main source file.
 
 #include "list.h"
 
-LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...){
-
-   if(iDataSize > MAX_DATA){
-      printf("ERROR: MAX_DATA exceeded."); 
-      return NULL;
-   }
+LIST *CreateList(char *szKey, char cFlag, ...){
 
    va_list vaData;
-   LIST *pList;
-   va_start(vaData, iDataSize);
+   LIST *pList = NULL;
+
+   va_start(vaData, cFlag);
 
    pList = (LIST *) malloc(sizeof(LIST));
    if(pList != NULL){
@@ -65,16 +61,17 @@ LIST *CreateList(char *szKey, char cFlag, int iDataSize, ...){
 
       if(cFlag == 'S'){
          pList->pszValue = (char*) malloc(MAX_DATA);
-         char *inputStr = va_arg(vaData, char*);
+         char *szInputStr = va_arg(vaData, char*);
+         printf("Input string on key %s: %s", szKey, szInputStr);
 
          if(pList->pszValue != NULL){
-            strncpy(pList->pszValue, inputStr, strlen(inputStr));
+            strncpy(pList->pszValue, szInputStr, (strlen(szInputStr) > MAX_DATA ? MAX_DATA : strlen(szInputStr)));
          }
 
-
       } else if(cFlag == 'I'){
+         int iValue = va_arg(vaData, int);
          pList->pszValue = NULL;
-         pList->iValue = va_arg(vaData, int);
+         pList->iValue = iValue;
       
       }  else {
          printf("ERROR! Invalid type flag.\n"); 
@@ -115,11 +112,24 @@ int InsertSorted(LIST *pHead, char *szKey, char cFlag, ...){
    va_list vaData; 
    LIST *pCurrent = pHead;
    LIST *pPrev = NULL;
+   LIST *pNewNode = NULL;
 
    va_start(vaData, cFlag);
-   LIST *pNewNode = CreateList(szKey, cFlag, MAX_DATA, vaData); 
 
-   // Check if input is string or int
+   // Check for valid type flag
+   if(cFlag == 'I'){
+      int iInputValue = va_arg(vaData, int);
+      pNewNode = CreateList(szKey, cFlag, iInputValue); 
+
+   } else if(cFlag == 'S'){
+      char *szInputValue = va_arg(vaData, char*);
+      pNewNode = CreateList(szKey, cFlag, *szInputValue); 
+
+   } else {
+      printf("Invalid type flag.\n");
+      return 1;
+   }
+
 
    while(pCurrent != NULL){
       if(strcmp(pNewNode->pszKey, pCurrent->pszKey) >= 0){
