@@ -42,10 +42,12 @@ int main(void){
 
    // Main program
    printf("\n\nSTARTING MAIN PROGRAM\n\n");
-   LIST *pFileDataList = NULL;
-   char *pszDataBuffer = NULL, cCurrent;
+   LIST *pEntryList = NULL;
+   char *pszDataBuffer = NULL; 
+   char *pszEntryData = NULL, *pszEntryKey = NULL; 
+   char cCurrent, L;
    FILE *fFileData;
-   int iBufferIndex, lFileSize;
+   int iBufferIndex, lFileSize, iEntryData;
 
 
    pszDataBuffer = (char*) malloc(MAX_LINE);
@@ -59,16 +61,15 @@ int main(void){
       return 1;
    }
 
-   // TODO: Store file by line in buffer (max linebuffer size) or until newline is found
    for(;;){
-
-      if(feof(fFileData)){
-         break;  
-      }
-
+      // TODO: Store file by line in buffer (max linebuffer size) or until newline is found
       iBufferIndex = 0;
       while(iBufferIndex < MAX_LINE){
          cCurrent = fgetc(fFileData);      
+         
+         if(feof(fFileData)){
+            break;  
+         }
 
          if(cCurrent == '\n')
             break;
@@ -76,14 +77,54 @@ int main(void){
          if(cCurrent == 0)
             break;
 
-         // raw indexing for flex
+         // raw indexing to flex
          *(pszDataBuffer + (iBufferIndex * sizeof(char))) = cCurrent; 
 
          ++iBufferIndex;
       }
-      pszDataBuffer[iBufferIndex] = '\0';
-      printf("Line - %s\n", pszDataBuffer);
 
+      if(feof(fFileData)){
+         break;  
+      }
+
+      // NULL TERMINATION
+      pszDataBuffer[iBufferIndex] = '\0';
+
+      printf("\nParsing data.\n");
+      // Parsing string into LIST structure  
+      
+      // Defining limits for splitting databuffer into key and value
+      int iValueStart, iValueEnd; 
+      int iKeyStart = 0, iKeyEnd;
+
+      iValueEnd = strlen(pszDataBuffer) - 1;
+
+      for(iKeyEnd = 0; iKeyEnd < iValueEnd + 1; iKeyEnd++){
+         if(pszDataBuffer[iKeyEnd + 1] == '='){
+            break; 
+         }
+      }
+
+      iValueStart = iKeyEnd + 2;
+      int iDatasize = iValueEnd - iValueStart;
+
+      pszEntryKey = (char *) malloc((sizeof(char) * iKeyEnd) + 2);
+      pszEntryData = (char *) malloc((sizeof(char) * iDatasize) + 2);
+
+      // Parsing line into data fields (Key and value)
+      strncpy(pszEntryKey, pszDataBuffer, iKeyEnd + 1);
+      pszEntryKey[iKeyEnd + 1] = '\0';
+
+      strncpy(pszEntryData, pszDataBuffer + (iValueStart * sizeof(char)), iValueEnd + 1);
+      pszEntryData[iValueEnd + 1] = '\0'; 
+
+      printf("DEBUG: %s ", pszEntryKey, sizeof(pszEntryKey));
+      printf("-- %s\n", pszEntryData, sizeof(pszEntryData));
+
+      free(pszEntryKey);
+      pszEntryKey = NULL;
+      free(pszEntryData);
+      pszEntryData = NULL;
    }
 
    fclose(fFileData);
@@ -91,8 +132,8 @@ int main(void){
 
    free(pszDataBuffer);
    pszDataBuffer = NULL;
-   FreeList(&pFileDataList);
-   pFileDataList = NULL;
+   FreeList(&pEntryList);
+   pEntryList = NULL;
 
    return 0;   
 }
