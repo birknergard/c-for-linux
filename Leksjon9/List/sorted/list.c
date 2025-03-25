@@ -24,8 +24,6 @@ For example...
    grade="A+"
    students=77
 
-Use a variant of the InsertSorted() function that, when inserting elements,
-
 Add a function Lookup() that looks up a key and returns the value.
 How can you handle the two types, integer and string?
 
@@ -64,10 +62,11 @@ LIST *CreateList(char *szKey, char cFlag, ...){
       if(cFlag == 'S'){
          pList->pszValue = (char*) malloc(MAX_DATA);
          char *szInputStr = va_arg(vaData, char*);
-
+         
          if(pList->pszValue != NULL){
-            strncpy(pList->pszValue, szInputStr, (strlen(szInputStr) > MAX_DATA ? MAX_DATA : strlen(szInputStr)));
+            strncpy(pList->pszValue, szInputStr, MAX_DATA);
          }
+
 
       } else if(cFlag == 'I'){
          int iValue = va_arg(vaData, int);
@@ -92,11 +91,13 @@ int FreeList(LIST **ppHead){
    LIST *pTemp = NULL;
 
    while(pCurrent != NULL){
-      printf("Freeing node with key %s. \n", pCurrent->pszKey);
+      //printf("Freeing node with key %s. \n", pCurrent->pszKey);
       free(pCurrent->pszKey);
+      pCurrent->pszKey = NULL;
 
       if(pCurrent->pszValue != NULL){
          free(pCurrent->pszValue);
+         pCurrent->pszValue = NULL;
       }
       
       pTemp = pCurrent;
@@ -104,6 +105,8 @@ int FreeList(LIST **ppHead){
       free(pTemp);
    }
 
+   pCurrent = NULL;
+   pTemp = NULL;
 }
 
 int InsertSorted(LIST **ppHead, char *szKey, char cFlag, ...){
@@ -113,6 +116,8 @@ int InsertSorted(LIST **ppHead, char *szKey, char cFlag, ...){
    LIST *pNewNode = NULL;
 
    va_start(vaData, cFlag);
+
+   // TODO: Make keys unique
 
    // Check for valid type flag
    if(cFlag == 'I'){
@@ -124,43 +129,123 @@ int InsertSorted(LIST **ppHead, char *szKey, char cFlag, ...){
       pNewNode = CreateList(szKey, cFlag, szInputValue); 
 
    } else {
-      printf("Invalid type flag.\n");
+      printf("Invalid type flag. Needs to be either \"I\" or \"S\"\n");
       return 1;
    }
 
 
+   int iCompareResult;
    while(pCurrent != NULL){
-      if(strcmp(pNewNode->pszKey, pCurrent->pszKey) >= 0){
+      iCompareResult = strcmp(pNewNode->pszKey, pCurrent->pszKey);
+
+      // Matching keys
+      if(iCompareResult == 0){
+         printf("ERROR: An entry with this key(\"%s\") already exists in the list.\n", pCurrent->pszKey);
+         FreeList(&pNewNode);
+         return 1;
+      }
+
+      // Key is greater
+      if(iCompareResult > 0){
          // If higher value, go next, unless there is no null
          if(pCurrent->pNext == NULL){
             pCurrent->pNext = pNewNode;
-            return 0;
+            break;
          } 
 
          pPrev = pCurrent;
          pCurrent = pCurrent->pNext;       
 
+      // Key is smaller, element is insert before the next key 
       } else {
-         // if pointing to head node
+
+         // reassign head if current node is head
          if(pCurrent == *ppHead){
             pNewNode->pNext = *ppHead;
             *ppHead = pNewNode;
-            return 0;
+            break;
          }  
 
          // handle insert
          pPrev->pNext = pNewNode;
          pNewNode->pNext = pCurrent;
-         return 0;
+         break;
       }
    }
+
    va_end(vaData);
+   return 0;
+}
+
+ 
+void *Lookup(LIST *pHead, char *szKey){
+
+   // TODO: Handle output of multiple types (macros?)
+   LIST *pCurrent = pHead; 
+   while(pCurrent != NULL){
+      if(strcmp(pCurrent->pszKey, szKey) == 0){
+         if(pCurrent->pszValue == NULL){
+            return &pCurrent->iValue; 
+         } else {
+            return pCurrent->pszValue; 
+         }
+      } 
+   
+      pCurrent = pCurrent->pNext;
+   }
+}
+
+int Delete(LIST **pHead, char *szKey){
+   LIST *pCurrent = *pHead;
+
+   // pointer to target for deletion
+   LIST *pTarget = NULL;
+
+   if(strcmp(pCurrent->pszKey, szKey) == 0){
+      // assigning target
+      pTarget = pCurrent;
+
+      // Reassigning head node pointer
+      *pHead = pCurrent->pNext;
+   }
+
+   if(pTarget == NULL){
+      for(;;){
+
+         if(pCurrent == NULL) {
+            printf("Could not find node with key %s\n", szKey);
+            return 1; 
+         }
+
+         // Matching node is found
+         if(strcmp(pCurrent->pNext->pszKey, szKey) == 0){
+            pTarget = pCurrent->pNext;
+
+            // Reassigning previous node pointer to omit target
+            pCurrent->pNext = pTarget->pNext;
+            break;
+         } 
+
+         pCurrent = pCurrent->pNext;
+      }
+   }
+
+   // deleting node
+   free(pTarget->pszKey);
+
+   if(pTarget->pszValue != NULL)
+      free(pTarget->pszValue);
+
+   free(pTarget);
+   pTarget = NULL;
+   pCurrent = NULL;
+   return 0;
 }
 
 void PrintList (LIST *pList){
    LIST *pThis = pList;
    int i = 0;
-   while (pThis->pNext != NULL) {
+   while (pThis != NULL) {
       if(pThis->pszValue == NULL){
          printf ("%d: %s - %d\n", ++i, pThis->pszKey, pThis->iValue);
       } else {

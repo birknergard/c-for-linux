@@ -52,17 +52,17 @@ typedef struct _LIST {
 } LIST;
 #pragma pack()
 
-// Prototypes - functions return OK or ERROR.
 LIST *CreateList(char *szKey, char cFlag, ...);
 int FreeList(LIST **ppHead);
 int InsertSorted(LIST **pHead, char *szKey, char cFlag, ...);
 
 /*
  * How to handle num / string type
- * format string ["[str/int] [key]"]
+ * format string ["[S (for string) or I(for int)]", data]
  * */
-void Lookup(LIST *pHead, char *szFormatFlag);
-int Delete(LIST *pHead, char *szKey);
+void *Lookup(LIST *pHead, char *szKey);
+int Delete(LIST **pHead, char *szKey);
 void PrintList (LIST *pList);
+
 
 #endif // ndef _LIST_H

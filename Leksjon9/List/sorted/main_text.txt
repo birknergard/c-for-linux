@@ -1,0 +1,6 @@
+college="Westerdals"
+class=2
+grade="A+"
+students=77
+gang="crippz"
+sleeplessgamergang=2507
