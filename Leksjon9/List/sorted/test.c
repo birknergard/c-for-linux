@@ -6,7 +6,7 @@
 
 #include "list.h"
 
-#define MAX_LINE 256
+#define MAX_LINE 512 
 
 int main(void){
 
@@ -42,6 +42,7 @@ int main(void){
 
    // Main program
    printf("\n\nSTARTING MAIN PROGRAM\n\n");
+
    LIST *pEntryList = NULL;
    char *pszDataBuffer = NULL; 
    char *pszEntryData = NULL, *pszEntryKey = NULL; 
@@ -49,11 +50,6 @@ int main(void){
    FILE *fFileData;
    int iBufferIndex, lFileSize, iEntryData;
 
-
-   pszDataBuffer = (char*) malloc(MAX_LINE);
-   if(pszDataBuffer == NULL){
-      return 1;     
-   }
    
    fFileData = fopen("./main_text.txt", "r");
    if(fFileData == NULL) {
@@ -63,6 +59,12 @@ int main(void){
 
    for(;;){
       // TODO: Store file by line in buffer (max linebuffer size) or until newline is found
+      //
+      pszDataBuffer = (char*) malloc(MAX_LINE);
+      if(pszDataBuffer == NULL){
+         return 1;     
+      }
+
       iBufferIndex = 0;
       while(iBufferIndex < MAX_LINE){
          cCurrent = fgetc(fFileData);      
@@ -78,60 +80,102 @@ int main(void){
             break;
 
          // raw indexing to flex
-         *(pszDataBuffer + (iBufferIndex * sizeof(char))) = cCurrent; 
-
+         *(pszDataBuffer + iBufferIndex) = cCurrent; 
          ++iBufferIndex;
       }
 
       if(feof(fFileData)){
+         free(pszDataBuffer);
+         pszDataBuffer = NULL;
          break;  
       }
 
       // NULL TERMINATION
       pszDataBuffer[iBufferIndex] = '\0';
 
-      printf("\nParsing data.\n");
-      // Parsing string into LIST structure  
-      
       // Defining limits for splitting databuffer into key and value
-      int iValueStart, iValueEnd; 
-      int iKeyStart = 0, iKeyEnd;
+      int iValueStart = 0, iValueEnd = 0; 
+      int iKeyStart = 0, iKeyEnd = 0; 
+      int i, iEntryDataLength;
+      
 
-      iValueEnd = strlen(pszDataBuffer) - 1;
-
-      for(iKeyEnd = 0; iKeyEnd < iValueEnd + 1; iKeyEnd++){
-         if(pszDataBuffer[iKeyEnd + 1] == '='){
-            break; 
+      for(i = 0; i < iBufferIndex; i++){
+         if(pszDataBuffer[i + 1] == '=' && i < iBufferIndex){
+            iKeyEnd = i;
+            iValueStart = i+2;
          }
       }
 
-      iValueStart = iKeyEnd + 2;
-      int iDatasize = iValueEnd - iValueStart;
+      printf("bufferindex %d", iBufferIndex);
 
-      pszEntryKey = (char *) malloc((sizeof(char) * iKeyEnd) + 2);
-      pszEntryData = (char *) malloc((sizeof(char) * iDatasize) + 2);
+      iValueEnd = iBufferIndex - 1; 
+
+      // Check for datatype, omit first and last index (to remove "") if string
+      char cDataTypeFlag;
+      if(pszDataBuffer[iValueStart] == '\"'){
+         cDataTypeFlag = 'S';
+         ++iValueStart;
+         --iValueEnd;
+
+      } else if(isdigit(pszDataBuffer[iValueStart])){
+         cDataTypeFlag = 'I';
+          
+      } else {
+         cDataTypeFlag = 'x';
+      }
+
+      pszEntryKey = (char *) malloc(iKeyEnd + 2);
+
+      iEntryDataLength = iValueEnd - iValueStart; 
+
+      //printf("Data Length %d - %s", iValueEnd - iValueStart + 1, pszDataBuffer);
+      pszEntryData = (char *) malloc(iEntryDataLength + 2);
 
       // Parsing line into data fields (Key and value)
       strncpy(pszEntryKey, pszDataBuffer, iKeyEnd + 1);
-      pszEntryKey[iKeyEnd + 1] = '\0';
+      *(pszEntryKey + iKeyEnd + 1) = '\0';
 
-      strncpy(pszEntryData, pszDataBuffer + (iValueStart * sizeof(char)), iValueEnd + 1);
-      pszEntryData[iValueEnd + 1] = '\0'; 
+      char *pszData = pszDataBuffer + iValueStart;
 
-      printf("DEBUG: %s ", pszEntryKey, sizeof(pszEntryKey));
-      printf("-- %s\n", pszEntryData, sizeof(pszEntryData));
+      strncpy(pszEntryData, pszData, iEntryDataLength + 1);
+      *(pszEntryData + (iValueEnd - iValueStart) + 1) = '\0'; 
+
+      pszData = NULL;
+
+      printf("DEBUG: %s ", pszEntryKey);
+      printf("-- %s\n", pszEntryData);
+
+
+      // Checking first index to determine datatype
+      if(pEntryList == NULL){
+         if(cDataTypeFlag == 'I'){
+            pEntryList = CreateList(pszEntryKey, 'I', atoi(pszEntryData));
+         } else {
+            pEntryList = CreateList(pszEntryKey, cDataTypeFlag, pszEntryData); 
+         }
+      } else {
+         if(cDataTypeFlag == 'I'){
+            InsertSorted(&pEntryList, pszEntryKey, 'I', atoi(pszEntryData));
+         } else {
+            InsertSorted(&pEntryList, pszEntryKey, cDataTypeFlag, pszEntryData); 
+         }
+      }
 
       free(pszEntryKey);
       pszEntryKey = NULL;
+
       free(pszEntryData);
       pszEntryData = NULL;
+
+      free(pszDataBuffer);
+      pszDataBuffer = NULL;
    }
+
+   PrintList(pEntryList);
 
    fclose(fFileData);
    fFileData = NULL;
 
-   free(pszDataBuffer);
-   pszDataBuffer = NULL;
    FreeList(&pEntryList);
    pEntryList = NULL;
 
