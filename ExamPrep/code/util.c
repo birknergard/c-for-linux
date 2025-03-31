@@ -11,8 +11,7 @@ int ParsePositiveInt(char *psz){
 	int iNum, iLen, i;
 	char *pszBuffer = NULL;
 
-
-	if(sizeof(psz) >= MAX_STRING_SIZE){
+	if(strlen(psz) >= MAX_STRING_SIZE){
 		berror("Input is too large. (MAX: 128 bytes)");
 		return -1;	
 	}
@@ -22,7 +21,6 @@ int ParsePositiveInt(char *psz){
 	iLen = strlen(psz);
 	while(i < iLen){
 		if(isdigit(psz[i]) == 0){
-			bdebug("This char: %d is not digit\n", psz[i]);
 			return -1;	
 		}
 		i++;

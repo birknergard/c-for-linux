@@ -129,7 +129,7 @@ int DestroyMenu(MENU **ppMenu){
 
 	free((*ppMenu)->pOptions);
 	free(*ppMenu);
-	return 0;
+	return OK;
 }
 
 /*
@@ -145,19 +145,15 @@ int ExecuteAction(MENU pMenu, int iSelection){
  * */
 int DisplayOptions(MENU pMenu){
 	int i;
-	printf("___________________________________________________\n\n");
+	printf("%s\n\n", "________________________________________________________");
 	for(i = 0; i < pMenu.iOptionCount; i++){
-		printf("%5d) %s\n\n", i + 1, pMenu.pOptions[i]->pszTitle);
+		printf("%2d) %+30s\n\n", i + 1, pMenu.pOptions[i]->pszTitle);
 	}
-		printf("%5d) %s\n", 0, "EXIT");
+		printf("%2d) %+30s\n", 0, "EXIT");
 		printf("\n\n");
+	printf("%s\n\n", "________________________________________________________");
 
-	return 0;
-}
-
-int Exit(MENU *pMenu){
-	printf("\nExiting ...\n");
-	DestroyMenu(&pMenu);
+	return OK;
 }
 
 int StartMenu(MENU *pMenu, char szProgramName[]){
@@ -166,7 +162,7 @@ int StartMenu(MENU *pMenu, char szProgramName[]){
 
 	char *pszUserInput = NULL; 
 
-	/*system("clear");*/
+	system("clear");
 	printf("\n\nWelcome to %s!\n\n", szProgramName);
 	printf("%s\n", szDesc);
 
@@ -175,33 +171,44 @@ int StartMenu(MENU *pMenu, char szProgramName[]){
 	pszUserInput = (char*) malloc(MAX_BUFFER);
 	if(pszUserInput == NULL){
 		berror("Failed malloc to pszUserInput");
-		Exit(pMenu);
+		return ERROR;
 	}
 
-	fgets(pszUserInput, MAX_BUFFER, stdin);
 	for(;;){
+		fgets(pszUserInput, MAX_BUFFER, stdin);
+		/* Removes newline from input */
+		pszUserInput[strcspn(pszUserInput, "\r\n")] = 0;
 
 		iSelection = ParsePositiveInt(pszUserInput);
 
-		if(iSelection < 0){
+		if(iSelection < 0 || iSelection > pMenu->iOptionCount){
 			printf("Invalid selection. Please try again ...\n");
-			fgets(pszUserInput, MAX_BUFFER, stdin);
 		
 		} else {
 			break;
 		}
 	}
 
-	if(iSelection == 0){
-		Exit(pMenu);	
-	}
-
-	ExecuteAction(*pMenu, iSelection);
-
 	free(pszUserInput);
 	pszUserInput = NULL;
 
-	Exit(pMenu);
+	if(iSelection == 0){
+		printf("\nExiting ...\n");
+		DestroyMenu(&pMenu);
+		return OK;
 
+	} else {
+		system("clear");
+		ExecuteAction(*pMenu, iSelection);	
+		printf("\nAction completed. Press enter to return to menu.\n");
+
+		char cInput = getchar();
+		while(cInput != '\n'){
+			cInput = getchar();
+		}
+
+		
+		StartMenu(pMenu, szProgramName);
+	}
 }
 
