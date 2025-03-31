@@ -21,9 +21,22 @@ int main(void){
 
 	AddOption(pMenuTest, "HelloWorld", &hello);
 
-	bdebug("Option 1 title: %s", (*pMenuTest->pOptions[0]).pszTitle);
+	pOptionTest = pMenuTest->pOptions[0];
+	bdebug("Option 1 title: %s. Testing function ...", pOptionTest->pszTitle);
+	pOptionTest->funcAction();
 
-	DestroyMenu(pMenuTest);
+	pOptionTest = NULL;
+	
+	AddOption(pMenuTest, "This is a test of second option", &test);
+
+	pOptionTest = pMenuTest->pOptions[1];
+	/*bdebug("Option 2 title: %s. Testing function ...", pOptionTest->pszTitle);*/
+	pOptionTest->funcAction();
+
+	StartMenu(pMenuTest, "TestProgram");
+
+	pOptionTest = NULL;
+	pMenuTest = NULL;
 
 	return OK;
 }

@@ -8,10 +8,10 @@ CFLAGS += -std=c89
 
 OBJDIR = obj
 
-_DEPS = menu.h debug.h 
+_DEPS = menu.h debug.h util.h 
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = main.o menu.o debug.o
+_OBJS = main.o menu.o debug.o util.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)

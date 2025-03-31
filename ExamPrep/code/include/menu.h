@@ -31,10 +31,10 @@ OPTION *CreateOption(char *szTitle, void (*funcAction)());
 MENU *CreateMenu();
 int AddOption(MENU *pMenu, char *szTitle, void (*funcAction)());
 
-int StartMenu(MENU pMenu);
+int StartMenu(MENU *pMenu, char szProgramName[]);
 int DisplayOptions(MENU pMenu);
 int SelectAction(MENU pMenu, char cSelection);
-int DestroyMenu(MENU *pMenu);
+int DestroyMenu(MENU **pMenu);
 int Exit(MENU *pMenu);
 
 
