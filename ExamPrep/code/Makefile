@@ -4,14 +4,17 @@ INCLDIR = ./include
 CC = gcc
 CFLAGS = -O2
 CFLAGS += -I $(INCLDIR)
+# -lsocket, -lsockets (for server)
 CFLAGS += -std=c89
+CFLAGS += -Wpedantic
+CFLAGS += -Wall
 
 OBJDIR = obj
 
-_DEPS = menu.h debug.h util.h 
+_DEPS = debug.h server.h 
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = main.o menu.o debug.o util.o
+_OBJS =  debug.o server.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)

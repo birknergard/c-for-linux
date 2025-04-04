@@ -35,7 +35,6 @@ int StartMenu(MENU *pMenu, char szProgramName[]);
 int DisplayOptions(MENU pMenu);
 int SelectAction(MENU pMenu, char cSelection);
 int DestroyMenu(MENU **pMenu);
-int Exit(MENU **pMenu);
 
 
 #endif /*ndef _MENU_H_ */

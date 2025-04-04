@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void Debug(unsigned short usErrorType, int iLine, const char *szFormat, ...);
+void InitializeDebugger();
+void Debug(unsigned short usErrorType, int iLine, const char szFileName[], const char *szFormat, ...);
 
-#define bdebug(...) Debug(1, __LINE__, __VA_ARGS__)
-#define berror(...) Debug(0, __LINE__, __VA_ARGS__)
+#define bdebug(...) Debug(1, __LINE__, __FILE__, __VA_ARGS__)
+#define berror(...) Debug(0, __LINE__, __FILE__, __VA_ARGS__)
 
 #endif /* ndef DEBUG_H */

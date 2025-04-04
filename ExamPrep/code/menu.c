@@ -23,6 +23,7 @@ OPTION *CreateOption(char szTitle[], void (*funcAction)()){
 	if(pNewOption->pszTitle == NULL){
 		berror("Malloc failed for newOptions->pszTitle.");
 	}
+
 	if(iTitleLength >= TITLE_BUFFER){
 		strncpy(pNewOption->pszTitle, szTitle, TITLE_BUFFER);
 		pNewOption->pszTitle[TITLE_BUFFER] = '\0';
@@ -84,6 +85,7 @@ int AddOption(MENU *pMenu, char szTitle[], void (*funcAction)()){
 		/* Inserting new data to new ptr */
 		ppExtendedOptions[*piOptionCount] = pNewOption;
 
+
 		/* Deleting old data */
 		free(pMenu->pOptions);
 
@@ -99,7 +101,6 @@ int AddOption(MENU *pMenu, char szTitle[], void (*funcAction)()){
 	/* Handling dangling ptrs */
 	piOptionCount = NULL;
 	pNewOption = NULL;
-
 
 	return OK;
 }
@@ -206,7 +207,6 @@ int StartMenu(MENU *pMenu, char szProgramName[]){
 		while(cInput != '\n'){
 			cInput = getchar();
 		}
-
 		
 		StartMenu(pMenu, szProgramName);
 	}
