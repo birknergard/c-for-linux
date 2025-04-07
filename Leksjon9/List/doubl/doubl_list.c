@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "list.h"
+#include "doubl_list.h"
 
 static NODE *CreateNode (void *pvData, int iSze)
 {
@@ -20,20 +20,19 @@ static NODE *CreateNode (void *pvData, int iSze)
 }
 
 
-int InsertInList (LIST *pList, void *pvData, int iSze)
+int Add(LIST *pList, void *pvData, int iSze)
 {
-   int iRc = ERROR;
+   int iStatusCode = ERROR;
    NODE *pThis = CreateNode (pvData, iSze);
 
    if (pThis != NULL) {
 
       // If head is undefined (list is empty), set new node as head and tail
       if(pList->pHead == NULL){
-
          pList->pHead = pThis;
          pList->pTail = pThis;
 
-         iRc = OK;
+         iStatusCode = OK;
 
       } else {
          //  Newnode next ptr to current head
@@ -42,14 +41,14 @@ int InsertInList (LIST *pList, void *pvData, int iSze)
          pList->pHead->pPrev = pThis;
          // Define new list head as new node 
          pList->pHead = pThis;
-         iRc = OK;
+         iStatusCode = OK;
       }
    }
 
-   return iRc;
+   return iStatusCode;
 }
 
-int AddToList (LIST *pList, void *pvData, int iSze)
+int Append(LIST *pList, void *pvData, int iSze)
 {
    int iRc = ERROR;
    NODE *pThis = CreateNode (pvData, iSze);
@@ -70,14 +69,14 @@ int AddToList (LIST *pList, void *pvData, int iSze)
    return iRc;
 }
 
-int RemoveFromList (LIST *pList, NODE *pToDelete)
+int Remove(LIST *pList, NODE *pToDelete)
 {
    int iRc = ERROR;
    
    // Sets next node (after head) as new head the deleted node is the head
    if(pToDelete == pList->pHead){
       pList->pHead = pList->pHead->pNext;
-   }
+   
    // Sets next node (after head) as new head the deleted node is the head
    if(pToDelete == pList->pTail){
       pList->pTail = pList->pTail->pPrev;

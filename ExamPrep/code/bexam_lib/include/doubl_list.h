@@ -16,7 +16,7 @@ typedef struct _NODE {
    struct _NODE *pNext;
    struct _NODE *pPrev;
    int iSze;
-   void *pData;
+   void *pvData;
 } NODE;
 
 /* Hate the LISTHEAD name so here we are. 
@@ -26,9 +26,11 @@ typedef struct _LIST {
    NODE *pTail;
 } LIST;
 
-// Prototypes - functions return OK or ERROR.
-int Push(LIST *pList, void *pvData, int iSze);
-int Append(LIST *pList, void *pvData, int iSze);
+/* Prototypes - functions return OK or ERROR */
+LIST *CreateList();
+int Push(LIST *pList, void *pvData);
+int Append(LIST *pList, void *pvData);
 int RemoveFromList(LIST *pList, NODE *pToDelete);
+int DestroyList(LIST **ppList);
 
-#endif // DOUBLELIST_H 
+#endif /* DOUBLELIST_H */ 

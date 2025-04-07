@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "debug.h"
-#include "util.h"
+#include "./include/debug.h"
+#include "./include/util.h"
 
 
 int ParsePositiveInt(char *psz){

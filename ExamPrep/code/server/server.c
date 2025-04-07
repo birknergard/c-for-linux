@@ -1,8 +1,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "debug.h"
+#include "../bexam_lib/include/debug.h"
 #include "server.h"
 
 #define PORT 80
@@ -72,12 +75,16 @@ int RunServer(){
 				iErrorCode = errno;
 				berror("Error with accept() - errcode: %d", iErrorCode);	
 			} else {
-				recv()
-
+				memset(szBuffer, 0, MAX_MESSAGE_SIZE);
+				recv(sockNewDescriptor, szBuffer, MAX_MESSAGE_SIZE - 1, MSG_DONTWAIT);
+				if(sockNewDescriptor < 0){
+					iErrorCode = errno;
+					berror("Error reading message data - errcode: %d", iErrorCode);
+				} else {
+					printf("Message received!\n from %p:%d -> %s",&saClientAddress.sin_addr, PORT, szBuffer);
+				}
 			}
-
 		}
-	
 	}
 
 

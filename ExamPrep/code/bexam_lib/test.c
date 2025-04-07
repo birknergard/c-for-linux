@@ -1,19 +1,11 @@
 #include <stdio.h>
 
 #include "debug.h"
+#include "doubl_list.h"
 #include "menu.h"
 
-void hello(){
-	printf("Hello worldy\n");
-	return;
-}
-
-void test(){
-	printf("This is a test\n");
-	return;
-}
-
-int main(void){
+int main(int iArgC, char **apszArgV){
+	/* For testing menu 
 	OPTION *pOptionTest = NULL;
 	MENU *pMenuTest = NULL;
 
@@ -30,14 +22,17 @@ int main(void){
 	AddOption(pMenuTest, "This is a test of second option", &test);
 
 	pOptionTest = pMenuTest->pOptions[1];
-	/*bdebug("Option 2 title: %s. Testing function ...", pOptionTest->pszTitle);*/
 	pOptionTest->funcAction();
 
 	StartMenu(pMenuTest, "TestProgram");
 
 	pOptionTest = NULL;
 	pMenuTest = NULL;
+	*/
 
-	return OK;
+	/* For testing linked list */
+
+	LIST list = *CreateList();
+
 }
 

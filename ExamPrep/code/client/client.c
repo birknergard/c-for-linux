@@ -3,14 +3,16 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "debug.h"
+#include "../bexam_lib/include/debug.h"
+#include "client.h"
 
 int SendRequest(){
 
+	return 0;
 }
 
 int RunClient(){
-	int sockClientDescriptor, iConnection, iErrorCode;
+	int sockClientDescriptor, iConnectionStatus, iErrorCode;
 	struct sockaddr_in saClientAddress = { 0 };
 
 	/* Changes when error occurs, stays 0 if not */
@@ -26,12 +28,12 @@ int RunClient(){
 	} else {
 		saClientAddress.sin_family = AF_INET;
 		saClientAddress.sin_port = htons(80);
-		saClientAddress.sin_addr.s_addr = 0x100000F7;
+		saClientAddress.sin_addr.s_addr = htonl(0x7F000001);
 		
 		iConnectionStatus = connect(
 			sockClientDescriptor,
-			&saAddr,
-			sizeof(saAddr)
+			(struct sockaddr *) &saClientAddress,
+			sizeof(saClientAddress)
 		);
 
 		if(iConnectionStatus < 0){
@@ -55,5 +57,12 @@ int RunClient(){
 }
 
 int main(){
+	int iStatus;
+	iStatus = RunClient();
+	if(iStatus != 0){
+		printf("Server exited with error: %d\n", iStatus);
+		return 1;
+	}
 
+	return 0;
 }

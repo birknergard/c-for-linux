@@ -1,24 +1,27 @@
 #Makefile template
 
+TARGET = client
+LIBRARY = ../bexam_lib/bexamlib.a
 INCLDIR = ./include
 CC = gcc
 CFLAGS = -O2
 CFLAGS += -I $(INCLDIR)
-#CFLAGS += -std=c89
+CFLAGS += -std=c89
+CFLAGS += -Wall
 
 OBJDIR = obj
 
-_DEPS = source.h
+_DEPS = $(TARGET).h
 DEPS = $(patsubst %,$(INCLDIR)/%,$(_DEPS))
 
-_OBJS = llist.o
+_OBJS = $(TARGET).o 
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-llist: $(OBJS)
-	gcc -o $@ $^ $(CFLAGS)
+$(TARGET): $(OBJS)
+	gcc -o $@ $^ $(CFLAGS) $(LIBRARY)
 
 .PHONY: clean
 clean:

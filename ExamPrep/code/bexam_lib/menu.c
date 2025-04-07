@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "debug.h"
-#include "menu.h"
-#include "util.h"
+#include "./include/debug.h"
+#include "./include/menu.h"
+#include "./include/util.h"
 
 /*
  * Private function for creating options. Takes a string and a function pointer.
