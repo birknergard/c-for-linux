@@ -6,14 +6,17 @@
 #include "doubl_list.h"
 
 static NODE *CreateNode(void *pvData){
+   NODE *pThis;
 
-   NODE *pThis = (NODE *) malloc(sizeof(NODE));
-
-   if (pThis != NULL) {
-      memset (pThis, 0, sizeof(NODE));
-      pThis->iSze = sizeof(*pvData);
-      memcpy (pThis->pvData, pvData, pThis->iSze);
+   pThis = (NODE *) malloc(sizeof(NODE));
+   if (pThis == NULL) {
+      berror("failed malloc in CreateNode()");
+      return NULL;
    }
+
+   memset (pThis, 0, sizeof(NODE));
+   pThis->iSze = sizeof(*pvData);
+   memcpy (pThis->pvData, pvData, pThis->iSze);
 
    return pThis;
 }
@@ -28,11 +31,30 @@ LIST *CreateList(){
       return NULL;
    }
    memset(pList, 0, sizeof(LIST));
-
 }
 
 int DestroyList(LIST **ppList){
+   LIST *pCurrent = ppList->pHead;   
+   LIST *pTemp = NULL;
 
+   while(pCurrent != NULL){
+
+      if(pCurrent->pvData != NULL){
+         free(pCurrent->pvData);
+         pCurrent->pvData = NULL;
+      }
+      
+      pTemp = pCurrent;
+      pCurrent = pCurrent->pNext;
+      free(pTemp);
+   }
+
+   pCurrent = NULL;
+   pTemp = NULL;
+
+   free(ppList);
+
+   return OK;
 }
 
 
@@ -40,7 +62,7 @@ int Add(LIST *pList, void *pvData){
    int iStatusCode = ERROR;
    NODE *pThis = CreateNode(pvData);
 
-   if (pThis != NULL) {
+   if (pThis != NULL){
 
       /* If head is undefined (list is empty), set new node as head and tail */
       if(pList->pHead == NULL){
