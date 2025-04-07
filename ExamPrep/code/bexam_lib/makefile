@@ -21,7 +21,7 @@ $(OBJDIR)/%.o: %.c $(DEPS)
 	$(CC) -o $@ $< $(CFLAGS) 
 
 lib: $(OBJS)
-	$(CC) -o -c $@ $^ $(CFLAGS)
+	$(CC) $@ $^ $(CFLAGS) -c
 	ar rcs bexamlib.a $(OBJS)
 
 test:
