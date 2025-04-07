@@ -1,9 +1,10 @@
+#include "doubl_list.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "debug.h"
-#include "doubl_list.h"
 
 static NODE *CreateNode(void *pvData){
    NODE *pThis;
@@ -56,7 +57,6 @@ int DestroyList(LIST **ppList){
 
    return OK;
 }
-
 
 int Add(LIST *pList, void *pvData){
    int iStatusCode = ERROR;
@@ -142,3 +142,4 @@ int Remove(LIST *pList, NODE *pToDelete){
    if (iStatusCode == OK) free (pToDelete);
    return iStatusCode;
 }
+

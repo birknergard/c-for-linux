@@ -1,4 +1,8 @@
 #ifndef DEBUG_H
+
+#define OK 0
+#define ERROR 1
+
 #define DEBUG_H
 
 #include <stdarg.h>

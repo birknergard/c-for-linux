@@ -18,13 +18,10 @@ _OBJS = debug.o menu.o util.o doubl_list.o
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
 
 $(OBJDIR)/%.o: %.c $(DEPS)
-	$(CC) -o $@ $< $(CFLAGS) 
+	$(CC) -c -o $@ $< $(CFLAGS) 
 
 lib: $(OBJS)
-	$(CC) $@ $^ $(CFLAGS) -c
 	ar rcs bexamlib.a $(OBJS)
-
-test:
 	$(CC) test.c bexamlib.a $(CFLAGS) -o test  
 
 .PHONY: clean

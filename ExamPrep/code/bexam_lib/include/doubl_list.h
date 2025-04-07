@@ -9,9 +9,6 @@
 #ifndef DOUBLELIST_H
 #define DOUBLELIST_H
 
-#define OK      0
-#define ERROR   1
-
 typedef struct _NODE {
    struct _NODE *pNext;
    struct _NODE *pPrev;
