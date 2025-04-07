@@ -1,11 +1,8 @@
 #ifndef _MENU_H_
 #define _MENU_H_
 
-#define ERROR 1; 
-#define OK 0;
-
 #define TITLE_BUFFER 256
-#define MAX_BUFFER 1028
+#define MAX_BUFFER 1024
 
 #pragma pack(1)
 typedef struct _OPTION {
