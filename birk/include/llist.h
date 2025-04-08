@@ -21,6 +21,7 @@ typedef struct _NODE {
  * */
 typedef struct _LIST{
     NODE *noHead;
+    NODE *noTail;
     char *szType;
     int iLength;
 } LIST;

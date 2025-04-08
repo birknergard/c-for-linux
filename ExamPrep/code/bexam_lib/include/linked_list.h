@@ -6,13 +6,13 @@
 *              to be used as a baseline for further
 *              abstractions.
 --------------------------------------------------*/
-#ifndef DOUBLELIST_H
-#define DOUBLELIST_H
+#ifndef LINKED_LIST_H 
+#define LINKED_LIST_H 
 
 typedef struct _NODE {
    struct _NODE *pNext;
    struct _NODE *pPrev;
-   int iSze;
+   int iLength;
    void *pvData;
 } NODE;
 

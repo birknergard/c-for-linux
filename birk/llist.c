@@ -45,10 +45,7 @@ int _FreeNode(NODE *no){
 		return 1;
 	}
 
-	if(bIsMalloced){
-		free(no->pData);
-	}
-
+	free(no->pData);
 	free(no);
 	return 0;
 }
@@ -136,7 +133,6 @@ void *GetValue(LIST *lip, int iIndex){
 int RemoveFirst(LIST *lip){
 	NODE *noOldHead;
 
-	/*TODO: Make list be emptyable, list can be initialized as empty but still take values.*/
 	if(lip->iLength == 0){
 		printf("Cant remove element on empty list.\n");
 		return 1;

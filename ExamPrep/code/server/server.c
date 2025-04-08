@@ -57,7 +57,7 @@ int RunServer(){
 		} else {
 
 			/* Make server listen for input */
-			listen(sockServerDescriptor, 1);
+			listen(sockServerDescriptor, 2);
 
 			/* Initialize client socket address to zero */
 			sockNewDescriptor = 0;

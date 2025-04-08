@@ -1,4 +1,4 @@
-#include "doubl_list.h"
+#include "linked_list.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,17 +91,17 @@ int Append(LIST *pList, void *pvData){
    if (pThis != NULL) {
       if (pList->pHead == NULL) {
          /* For nodeless list(?) */ 
+         pList->pHead = pThis;
       }
-      else {
-         /* Set tail node next ptr to new node */
-         pList->pTail->pNext = pThis;
+      /* Set tail node next ptr to new node */
+      pList->pTail->pNext = pThis;
 
-         /* Set new node as tail */
-         pList->pTail = pThis;
+      /* Set new node as tail */
+      pList->pTail = pThis;
 
-         iStatusCode = OK;
-      }
+      iStatusCode = OK;
    }
+
    return iStatusCode;
 }
 
@@ -143,3 +143,11 @@ int Remove(LIST *pList, NODE *pToDelete){
    return iStatusCode;
 }
 
+NODE GetNode(LIST *pList){
+
+   
+}
+
+void *GetData(){
+
+}
