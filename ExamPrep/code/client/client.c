@@ -6,7 +6,7 @@
 #include "../bexam_lib/include/debug.h"
 #include "client.h"
 
-int SendRequest(){
+int SMTP_Protocol(){
 
 	return 0;
 }
@@ -27,7 +27,7 @@ int RunClient(){
 		berror("socket() failed - errcode %d", iErrorCode);
 	} else {
 		saClientAddress.sin_family = AF_INET;
-		saClientAddress.sin_port = htons(80);
+		saClientAddress.sin_port = htons(8080);
 		saClientAddress.sin_addr.s_addr = htonl(0x7F000001);
 		
 		iConnectionStatus = connect(
@@ -40,7 +40,6 @@ int RunClient(){
 			iErrorCode = errno;
 			berror("connect() failed - errcode %d", iErrorCode);
 		} else {
-
 			send(sockClientDescriptor, "Hello server!", 32, 0);
 			if(sockClientDescriptor < 0){
 				iErrorCode = errno;
@@ -52,7 +51,8 @@ int RunClient(){
 	if(iErrorCode != 0)
 		return iErrorCode;
 
-	/* Dont want to return "error" code when its not an error. Return OK (0) instead. */
+	/* Dont want to return an "error" code when its not an error.
+	* Return OK (0) instead. This is purely semantic and for code readability */
 	return OK;
 }
 

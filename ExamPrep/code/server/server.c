@@ -8,13 +8,25 @@
 #include "../bexam_lib/include/debug.h"
 #include "server.h"
 
-#define PORT 80
+#define PORT 8080
+
+int HandleRequest(BPROTOCOL *bpRequest){
+	if(bpRequest->bHead == NULL){
+		berror("Invalid header.");
+		return ERROR;
+	}
+
+		
+	
+
+	return OK;
+}
 
 int RunServer(){
 	/* Declaring variables */
 	int sockServerDescriptor, sockNewDescriptor;
 	int iNewAddressLength;
-	int iErrorCode;
+	int iErrorCode, iListened;
 	int bBindSuccessful;
 	char szBuffer[MAX_MESSAGE_SIZE];
 
@@ -45,7 +57,7 @@ int RunServer(){
 		/* Bind socket to address */
 		bBindSuccessful = bind(
 			sockServerDescriptor,
-			(struct sockaddr *) &saServerAddress.sin_addr,
+			(struct sockaddr *) &saServerAddress,
 			sizeof(saServerAddress)
 		);
 
@@ -57,33 +69,39 @@ int RunServer(){
 		} else {
 
 			/* Make server listen for input */
-			listen(sockServerDescriptor, 2);
-
-			/* Initialize client socket address to zero */
-			sockNewDescriptor = 0;
-			iNewAddressLength = sizeof(&saClientAddress); 
-
-			/* Accept connection from client */
-			sockNewDescriptor = accept(
-				sockServerDescriptor,
-				(struct sockaddr *) &saClientAddress.sin_addr,
-				(socklen_t *) &iNewAddressLength
-			);
-
-			/* Does not continue if accept failed */
-			if(sockNewDescriptor < 0){
+			iListened =	listen(sockServerDescriptor, 2);
+			if(iListened < 0){
 				iErrorCode = errno;
-				berror("Error with accept() - errcode: %d", iErrorCode);	
+				berror("Listen failed - errcode: %d", iErrorCode);
 			} else {
-				memset(szBuffer, 0, MAX_MESSAGE_SIZE);
-				recv(sockNewDescriptor, szBuffer, MAX_MESSAGE_SIZE - 1, MSG_DONTWAIT);
+				/* Initialize client socket address to zero */
+				sockNewDescriptor = 0;
+				iNewAddressLength = sizeof(saClientAddress); 
+
+				/* Accept connection from client */
+				sockNewDescriptor = accept(
+					sockServerDescriptor,
+					(struct sockaddr *) &saClientAddress,
+					(socklen_t *) &iNewAddressLength
+				);
+
+				/* Does not continue if accept failed */
 				if(sockNewDescriptor < 0){
 					iErrorCode = errno;
-					berror("Error reading message data - errcode: %d", iErrorCode);
+					berror("Error with accept() - errcode: %d", iErrorCode);	
 				} else {
-					printf("Message received!\n from %p:%d -> %s",&saClientAddress.sin_addr, PORT, szBuffer);
+					memset(szBuffer, 0, MAX_MESSAGE_SIZE);
+					recv(sockNewDescriptor, szBuffer, MAX_MESSAGE_SIZE - 1, MSG_DONTWAIT);
+					if(sockNewDescriptor < 0){
+						iErrorCode = errno;
+						berror("Error reading message data - errcode: %d", iErrorCode);
+					} else {
+						printf("Message received!\n from %p:%d -> %s\n", &saClientAddress.sin_addr, PORT, szBuffer);
+					}
 				}
+			
 			}
+
 		}
 	}
 
