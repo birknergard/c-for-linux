@@ -10,47 +10,14 @@
 
 #define PORT 8080
 
-int HandleRequest(BPROTOCALL *bpRequest){
-	char *szMessageData;
-	szMessageData = NULL;
+int HandleRequest(BSCPRequest *bscpData){
+	void *vpProtocolData;
+	vpProtocolData = NULL;
 
-	if(bpRequest->bHeader == NULL){
-		berror("Invalid header.");
+	if(bscpData == NULL || bscpData->Header == NULL || bscpData->szDataContainer == NULL){
+		berror("Invalid protocol.");
 		return ERROR;
 	}
-
-	if(bpRequest->bHeader.iSize > MAX_MESSAGE_SIZE){
-		berror("Message size is too many bytes.");
-		return ERROR;
-	}
-	
-	switch(bpRequest->bHeader.szType){
-		case "JSON":
-			szMessageData = (char*) malloc(iSize); 
-			if(szMessageData != NULL){
-				/* Assume data is string */
-				strncpy(szMessageData, (char *) bpRequest->vpData, iSize - 1);
-				szMessageData[iSize] = '\0';
-
-				printf("%s\n", szMessageData);
-
-				/* Parse message data, assuming its JSON format. */
-				/* TODO: Make JSON parser */
-			}
-			/* Free allocated memory, remove dangling pointers */
-			free(szMessageData);
-			szMessageData = NULL;
-			break;
-
-		case "STRUCT":
-			/* For parsing a predefined struct */
-			break;
-
-		default: 	
-			berror("Invalid type.");
-			break;
-	}
-
 
 	return OK;
 }
@@ -69,7 +36,7 @@ int RunServer(){
 
 	/* Allocate to header buffer */
 	pHeaderBuffer = NULL;
-	pHeaderBuffer = (HEADER *) malloc(sizeof(HEADER));
+	pHeaderBuffer = (BCSPRequest *) malloc(sizeof(BCSPRequest));
 	if(pHeaderBuffer == NULL){
 		berror("Could not allocate to header buffer.")
 		return 1;
@@ -139,7 +106,13 @@ int RunServer(){
 						berror("Error reading message data - errcode: %d", iStatusCode);
 					} else {
 						printf("Message received!\n from %p:%d -> %s\n", saClientAddress.sin_addr, PORT, szBuffer);
-						HandleRequest(szBuffer);
+					
+						if(pHeaderBuffer->iDataSize <= MAX_REQUEST_SIZE){
+							
+
+							HandleRequest();
+						}
+
 					}
 				}
 			}
