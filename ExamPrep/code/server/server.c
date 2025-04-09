@@ -10,14 +10,47 @@
 
 #define PORT 8080
 
-int HandleRequest(BPROTOCOL *bpRequest){
-	if(bpRequest->bHead == NULL){
+int HandleRequest(BPROTOCALL *bpRequest){
+	char *szMessageData;
+	szMessageData = NULL;
+
+	if(bpRequest->bHeader == NULL){
 		berror("Invalid header.");
 		return ERROR;
 	}
 
-		
+	if(bpRequest->bHeader.iSize > MAX_MESSAGE_SIZE){
+		berror("Message size is too many bytes.");
+		return ERROR;
+	}
 	
+	switch(bpRequest->bHeader.szType){
+		case "JSON":
+			szMessageData = (char*) malloc(iSize); 
+			if(szMessageData != NULL){
+				/* Assume data is string */
+				strncpy(szMessageData, (char *) bpRequest->vpData, iSize - 1);
+				szMessageData[iSize] = '\0';
+
+				printf("%s\n", szMessageData);
+
+				/* Parse message data, assuming its JSON format. */
+				/* TODO: Make JSON parser */
+			}
+			/* Free allocated memory, remove dangling pointers */
+			free(szMessageData);
+			szMessageData = NULL;
+			break;
+
+		case "STRUCT":
+			/* For parsing a predefined struct */
+			break;
+
+		default: 	
+			berror("Invalid type.");
+			break;
+	}
+
 
 	return OK;
 }
@@ -26,20 +59,30 @@ int RunServer(){
 	/* Declaring variables */
 	int sockServerDescriptor, sockNewDescriptor;
 	int iNewAddressLength;
-	int iErrorCode, iListened;
+	int iStatusCode, iListened;
 	int bBindSuccessful;
 	char szBuffer[MAX_MESSAGE_SIZE];
+	HEADER *pHeaderBuffer;
 
 	/* If unchanged, return error free. */
 	iErrorCode = 0;
+
+	/* Allocate to header buffer */
+	pHeaderBuffer = NULL;
+	pHeaderBuffer = (HEADER *) malloc(sizeof(HEADER));
+	if(pHeaderBuffer == NULL){
+		berror("Could not allocate to header buffer.")
+		return 1;
+	}
+		
 
 	/* Open network socket (TCP/IP Protocol), as a stream */
 	sockServerDescriptor = socket(AF_INET, SOCK_STREAM, 0);
 	sockNewDescriptor = 0;
 
 	if(sockServerDescriptor < 0){
-		iErrorCode = errno;
-		berror("Error when opening socket - errcode: %d", iErrorCode);
+		iStatusCode = errno;
+		berror("Error when opening socket - errcode: %d", iStatusCode);
 	} else {
 		/* Initialize server socket address to zero */
 		struct sockaddr_in saServerAddress = {0}; 
@@ -63,16 +106,16 @@ int RunServer(){
 
 		/* Does not continue if bind failed */
 		if(bBindSuccessful < 0){
-			iErrorCode = errno;
-			berror("Error with bind() - errcode %d", iErrorCode, bBindSuccessful);
+			iStatusCode = errno;
+			berror("Error with bind() - errcode %d", iStatusCode, bBindSuccessful);
 
 		} else {
 
 			/* Make server listen for input */
 			iListened =	listen(sockServerDescriptor, 2);
 			if(iListened < 0){
-				iErrorCode = errno;
-				berror("Listen failed - errcode: %d", iErrorCode);
+				iStatusCode = errno;
+				berror("Listen failed - errcode: %d", iStatusCode);
 			} else {
 				/* Initialize client socket address to zero */
 				sockNewDescriptor = 0;
@@ -83,32 +126,30 @@ int RunServer(){
 					sockServerDescriptor,
 					(struct sockaddr *) &saClientAddress,
 					(socklen_t *) &iNewAddressLength
-				);
+			
 
 				/* Does not continue if accept failed */
 				if(sockNewDescriptor < 0){
-					iErrorCode = errno;
-					berror("Error with accept() - errcode: %d", iErrorCode);	
+					iStatusCode = errno;
+					berror("Error with accept() - errcode: %d", iStatusCode);	
 				} else {
-					memset(szBuffer, 0, MAX_MESSAGE_SIZE);
-					recv(sockNewDescriptor, szBuffer, MAX_MESSAGE_SIZE - 1, MSG_DONTWAIT);
+					recv(sockNewDescriptor, pHeaderBuffer, MAX_MESSAGE_SIZE - 1, MSG_DONTWAIT);
 					if(sockNewDescriptor < 0){
 						iErrorCode = errno;
-						berror("Error reading message data - errcode: %d", iErrorCode);
+						berror("Error reading message data - errcode: %d", iStatusCode);
 					} else {
-						printf("Message received!\n from %p:%d -> %s\n", &saClientAddress.sin_addr, PORT, szBuffer);
+						printf("Message received!\n from %p:%d -> %s\n", saClientAddress.sin_addr, PORT, szBuffer);
+						HandleRequest(szBuffer);
 					}
 				}
-			
 			}
-
 		}
 	}
 
 
 	/* Close the sockets */
-	close(sockNewDescriptor);
 	close(sockServerDescriptor);
+	close(sockNewDescriptor);
 
 	return iErrorCode;
 }
