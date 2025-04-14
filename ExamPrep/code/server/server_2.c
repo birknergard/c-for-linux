@@ -11,37 +11,36 @@
 
 #define PORT 8080
 
-int HandleRequest(BSCP_PACKET bscpPacket){
-	/*
-						printf("Message received!\n from %p:%d\n", &saClientAddress.sin_addr, PORT);
+int HandleRequest(THREAD_DATA tData, BSCP_PACKET bscpPacket){
+	printf("Message received!\n from %p:%d\n", &saClientAddress.sin_addr, PORT);
 
-						/ Verifying header data /
-						if(preqBuffer == NULL){
-							iStatusCode = ERROR;
-							berror("Data could not be read.");
+	/* Verifying header data */
+	if(preqBuffer == NULL){
+		iStatusCode = ERROR;
+		berror("Data could not be read.");
 
-						} else if(sizeof(preqBuffer->Header) > MAX_HEADER){
-							iStatusCode = ERROR;
-							berror("HEADER exceeds data capacity.");
+	} else if(sizeof(preqBuffer->Header) > MAX_HEADER){
+		iStatusCode = ERROR;
+		berror("HEADER exceeds data capacity.");
 
-						} else if(preqBuffer->Header.iDataSize > MAX_BODY){
-							iStatusCode = ERROR;
-							berror("BODY exceeds data capacity.");
+	} else if(preqBuffer->Header.iDataSize > MAX_BODY){
+		iStatusCode = ERROR;
+		berror("BODY exceeds data capacity.");
 
-						} else {
-							switch(preqBuffer->Header.cAction){
-								case 'R':
-									HandleRequest(*preqBuffer);
-									break;
-								case 'W':
-									HandleRequest(*preqBuffer);
-									break;
+		} else {
+			switch(preqBuffer->Header.cAction){
+				case 'R':
+					HandleRequest(*preqBuffer);
+					break;
+				case 'W':
+					HandleRequest(*preqBuffer);
+					break;
 
-								default:
-									berror("Invalid action.");
-									break;
-							} 
-						} 
+				default:
+					berror("Invalid action.");
+					break;
+			} 
+		} 
 	*/
 
 	int iSize;

@@ -4,6 +4,7 @@
 	int SendRequest();
 	int Ping();
 	int RunClient();
+	int RunMultiClient(char szMessage[]);
 
 #endif /* CLIENT_H */
 
