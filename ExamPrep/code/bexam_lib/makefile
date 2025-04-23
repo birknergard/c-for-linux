@@ -27,6 +27,7 @@ lib: $(OBJS)
 .PHONY: clean
 clean:
 	rm -f $(OBJDIR)/*.o *~ core $(INCLDIR)/*~
+	rm -f bexamlib.a
 
 
 

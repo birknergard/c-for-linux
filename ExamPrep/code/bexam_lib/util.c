@@ -1,10 +1,11 @@
+#include "util.h"
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "./include/debug.h"
-#include "./include/util.h"
 
 
 int ParsePositiveInt(char *psz){

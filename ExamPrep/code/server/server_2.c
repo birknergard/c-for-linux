@@ -41,7 +41,7 @@ int HandleRequest(THREAD_DATA tData, BSCP_PACKET bscpPacket){
 					break;
 			} 
 		} 
-	*/
+	}
 
 	int iSize;
 	char *pszProtocolData;
@@ -84,8 +84,6 @@ int RunServer(){
 
 	/* If unchanged, return error free. */
 	iStatusCode = 0;
-
-		
 
 	/* Open network socket (TCP/IP Protocol), as a stream */
 	sockServerDescriptor = socket(AF_INET, SOCK_STREAM, 0);

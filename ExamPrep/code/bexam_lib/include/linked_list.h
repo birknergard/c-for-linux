@@ -12,7 +12,7 @@
 typedef struct _NODE {
    struct _NODE *pNext;
    struct _NODE *pPrev;
-   int iLength;
+   int iSize;
    void *pvData;
 } NODE;
 

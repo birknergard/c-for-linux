@@ -6,20 +6,29 @@
 
 #include "debug.h"
 
-static NODE *CreateNode(void *pvData){
-   NODE *pThis;
+static NODE *CreateNode(const void *pvData){
+   NODE *pNode;
 
-   pThis = (NODE *) malloc(sizeof(NODE));
-   if (pThis == NULL) {
+   pNode = (NODE *) malloc(sizeof(NODE));
+   if (pNode == NULL) {
       berror("failed malloc in CreateNode()");
       return NULL;
    }
 
-   memset (pThis, 0, sizeof(NODE));
-   pThis->iSze = sizeof(*pvData);
-   memcpy (pThis->pvData, pvData, pThis->iSze);
+   memset (pNode, 0, sizeof(NODE));
 
-   return pThis;
+   pNode->pvData = (void *) malloc(sizeof(void *));
+   if(pNode->pvData == NULL){
+      berror("Failed malloc in CreateNode() struct pvData\n");
+      free(pNode);
+      pNode = NULL;
+      return NULL;
+   }
+
+   pNode->iSize = sizeof(*pvData);
+   memcpy(pNode->pvData, pvData, sizeof(void *));
+
+   return pNode;
 }
 
 LIST *CreateList(){
@@ -31,29 +40,37 @@ LIST *CreateList(){
       bdebug("Error with malloc in CreateList().");
       return NULL;
    }
+
    memset(pList, 0, sizeof(LIST));
+
+   return pList;
 }
 
 int DestroyList(LIST **ppList){
-   LIST *pCurrent = ppList->pHead;   
-   LIST *pTemp = NULL;
+   NODE *pCurrent = (*ppList)->pHead;   
+   NODE *pTemp = NULL;
 
    while(pCurrent != NULL){
-
       if(pCurrent->pvData != NULL){
+         printf("Freeing node data\n");
          free(pCurrent->pvData);
          pCurrent->pvData = NULL;
       }
       
       pTemp = pCurrent;
       pCurrent = pCurrent->pNext;
+      printf("->Freeing node\n");
       free(pTemp);
    }
 
    pCurrent = NULL;
    pTemp = NULL;
 
-   free(ppList);
+   (*ppList)->pTail = NULL; 
+   (*ppList)->pHead = NULL; 
+
+   printf("Freeing list.\n");
+   free(*ppList);
 
    return OK;
 }
@@ -105,10 +122,10 @@ int Append(LIST *pList, void *pvData){
    return iStatusCode;
 }
 
-int Remove(LIST *pList, NODE *pToDelete){
+int Remove(LIST *pList, NODE pToDelete){
    int iStatusCode = ERROR;
    
-   /* Sets next node (after head) as new head the deleted node is the head */
+   /* Sets next node (after head) as new head if the deleted node is the head */
    if(pToDelete == pList->pHead){
       pList->pHead = pList->pHead->pNext;
    }
@@ -124,7 +141,7 @@ int Remove(LIST *pList, NODE *pToDelete){
    pThis = pList->pHead;
 
    while (pThis != NULL) {
-      if (pThis == pToDelete) {
+      if (*pThis == pToDelete) {
          pPrevious = pThis->pPrev;
          pNext = pThis->pNext;
 
@@ -139,11 +156,16 @@ int Remove(LIST *pList, NODE *pToDelete){
       pThis = pThis->pNext;
    }
 
+   pThis = NULL;
+   pPrevious = NULL;
+   pNext = NULL;
+
    if (iStatusCode == OK) free (pToDelete);
    return iStatusCode;
 }
 
 NODE GetNode(LIST *pList){
+
 
    
 }
