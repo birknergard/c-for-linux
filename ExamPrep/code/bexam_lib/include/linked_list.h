@@ -29,7 +29,7 @@ LIST *CreateList();
 int DestroyList(LIST **ppList);
 
 /* Getter functions */
-NODE Get(LIST pList, int i);
+NODE *Get(LIST pList, int i);
 void *GetData(LIST pList, int i);
 
 /* List modification functions - return OK or ERROR */

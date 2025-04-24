@@ -126,60 +126,39 @@ int Append(LIST *pList, void *pvData){
    return iStatusCode;
 }
 
-int Remove(LIST *pList, NODE *pToDelete){
+int Remove(LIST *pList, int i){
    int iStatusCode = ERROR;
-   
-   /* Sets next node (after head) as new head if the deleted node is the head */
-   if(pToDelete == pList->pHead){
-      pList->pHead = pList->pHead->pNext;
-   }
 
-   /* Sets next node (after head) as new head the deleted node is the head */
-   if(pToDelete == pList->pTail){
-      pList->pTail = pList->pTail->pPrev;
-   }
-
-   NODE *pThis = NULL;
-   NODE *pPrevious = NULL;
-   NODE *pNext = NULL;
-
-   pThis = pList->pHead;
-
-   while (pThis != NULL) {
-      /*   */
-      if (pThis == pToDelete) {
-         pPrevious = pThis->pPrev;
-         pNext = pThis->pNext;
-
-         /* Handle deletion */
-         pPrevious->pNext = pNext;
-         pNext->pPrev = pPrevious;
-
-         iStatusCode = OK;
-         break;
-      }
-      /* Check next node */
-      pThis = pThis->pNext;
-   }
-
-   pThis = NULL;
-   pPrevious = NULL;
-   pNext = NULL;
-
-   if (iStatusCode == OK) free (pToDelete);
    return iStatusCode;
 }
 
-NODE Get(LIST pList, int i){
-   NODE *pCurrent;
-   pCurrent = pList.pHead;
-   
-   return *pCurrent;
+NODE *Get(LIST pList, int i){
+   int j;
+   NODE *pCurrent = NULL;
+
+   if(i >= pList.iLength){
+      berror("Index out of bounds.\n");
+      return NULL;
+   }
+
+   /* If index is smaller or equal to middle, Iterate forward from head ... */
+   if(i <= pList.iLength / 2){
+      for(j = 0; j < pList.iLength / 2; j++){
+         
+      }
+   /* ... Else go backwards from tail */
+   } else {
+      for(j = pList.iLength / 2; j > 0; j--){
+         
+      }
+   } 
+
+   return pCurrent;
 }
 
 void *GetData(LIST pList, int i){
    void *pvNodeData;
    pvNodeData = NULL; 
-   pvNodeData = Get(pList, i).pvData; 
+   pvNodeData = Get(pList, i)->pvData; 
    return pvNodeData;
 }
