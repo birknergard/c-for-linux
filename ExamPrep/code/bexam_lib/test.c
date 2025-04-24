@@ -26,7 +26,6 @@ int main(void){
 	Add(liTestList, (void *) pa);
 	Add(liTestList, (void *) pb);
 	Add(liTestList, (void *) pc);
-	Remove(liTestList, )
 
 	printf("Destroying\n");
 	DestroyList(&liTestList);

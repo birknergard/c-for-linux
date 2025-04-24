@@ -42,7 +42,11 @@ LIST *CreateList(){
    }
 
    memset(pList, 0, sizeof(LIST));
-
+   
+   /* Debugging for checking initial list length
+   bdebug("Created new list. Length %d", pList->iLength);
+   */
+   
    return pList;
 }
 
@@ -122,13 +126,14 @@ int Append(LIST *pList, void *pvData){
    return iStatusCode;
 }
 
-int Remove(LIST *pList, NODE pToDelete){
+int Remove(LIST *pList, NODE *pToDelete){
    int iStatusCode = ERROR;
    
    /* Sets next node (after head) as new head if the deleted node is the head */
    if(pToDelete == pList->pHead){
       pList->pHead = pList->pHead->pNext;
    }
+
    /* Sets next node (after head) as new head the deleted node is the head */
    if(pToDelete == pList->pTail){
       pList->pTail = pList->pTail->pPrev;
@@ -141,7 +146,8 @@ int Remove(LIST *pList, NODE pToDelete){
    pThis = pList->pHead;
 
    while (pThis != NULL) {
-      if (*pThis == pToDelete) {
+      /*   */
+      if (pThis == pToDelete) {
          pPrevious = pThis->pPrev;
          pNext = pThis->pNext;
 
@@ -164,12 +170,16 @@ int Remove(LIST *pList, NODE pToDelete){
    return iStatusCode;
 }
 
-NODE GetNode(LIST *pList){
-
-
+NODE Get(LIST pList, int i){
+   NODE *pCurrent;
+   pCurrent = pList.pHead;
    
+   return *pCurrent;
 }
 
-void *GetData(){
-
+void *GetData(LIST pList, int i){
+   void *pvNodeData;
+   pvNodeData = NULL; 
+   pvNodeData = Get(pList, i).pvData; 
+   return pvNodeData;
 }

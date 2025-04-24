@@ -9,6 +9,7 @@
 #ifndef LINKED_LIST_H 
 #define LINKED_LIST_H 
 
+/* Node struct */
 typedef struct _NODE {
    struct _NODE *pNext;
    struct _NODE *pPrev;
@@ -16,18 +17,24 @@ typedef struct _NODE {
    void *pvData;
 } NODE;
 
-/* Hate the LISTHEAD name so here we are. 
- * Why would you call it listhead when it just contains the head and tail? you good? */
+/* Doubly linked list struct */
 typedef struct _LIST {
    NODE *pHead;
    NODE *pTail;
+   int iLength;
 } LIST;
 
-/* Prototypes - functions return OK or ERROR */
+/* Creation functions */
 LIST *CreateList();
+int DestroyList(LIST **ppList);
+
+/* Getter functions */
+NODE Get(LIST pList, int i);
+void *GetData(LIST pList, int i);
+
+/* List modification functions - return OK or ERROR */
 int Push(LIST *pList, void *pvData);
 int Append(LIST *pList, void *pvData);
 int RemoveFromList(LIST *pList, NODE *pToDelete);
-int DestroyList(LIST **ppList);
 
 #endif /* DOUBLELIST_H */ 
