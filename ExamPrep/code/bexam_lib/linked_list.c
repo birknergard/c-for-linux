@@ -103,6 +103,7 @@ int Add(LIST *pList, void *pvData){
       }
    }
 
+   pList->iLength++;
    return iStatusCode;
 }
 
@@ -122,6 +123,7 @@ int Append(LIST *pList, void *pvData){
 
       iStatusCode = OK;
    }
+   pList->iLength++;
 
    return iStatusCode;
 }
@@ -136,29 +138,47 @@ NODE *Get(LIST pList, int i){
    int j;
    NODE *pCurrent = NULL;
 
-   if(i >= pList.iLength){
+   if(i >= pList.iLength || i < 0){
       berror("Index out of bounds.\n");
       return NULL;
    }
 
-   /* If index is smaller or equal to middle, Iterate forward from head ... */
-   if(i <= pList.iLength / 2){
-      for(j = 0; j < pList.iLength / 2; j++){
-         
+   if(i == 0){
+      if(pList.pHead == NULL){
+         berror("List HEAD is not defined.\n");
+         return NULL;
       }
+      return pList.pHead;
+   }
+
+   if(i == pList.iLength - 1){
+      if(pList.pTail == NULL){
+         berror("List TAIL is not defined.\n");
+         return NULL;
+      }
+      return pList.pTail; 
+   }
+
+   /* If index is smaller or equal to middle, Iterate forward from head ... 
+   NOTE: If number is odd the number is automatically rounded down to nearest whole */
+   if(i <= pList.iLength / 2){
+      pCurrent = pList.pHead;
+      for(j = 0; j < i; j++){
+         pCurrent = pCurrent->pNext;
+      }
+
    /* ... Else go backwards from tail */
    } else {
-      for(j = pList.iLength / 2; j > 0; j--){
-         
+      pCurrent = pList.pTail;
+      for(j = 0; j < i; j++){
+         pCurrent = pCurrent->pPrev;
       }
+
    } 
 
    return pCurrent;
 }
 
 void *GetData(LIST pList, int i){
-   void *pvNodeData;
-   pvNodeData = NULL; 
-   pvNodeData = Get(pList, i)->pvData; 
-   return pvNodeData;
+   return Get(pList, i)->pvData; 
 }
