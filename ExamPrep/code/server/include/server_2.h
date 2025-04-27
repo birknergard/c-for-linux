@@ -4,9 +4,16 @@
 #define MAX_HEADER 72
 #define MAX_BODY 2048
 #define MAX_PACKET 2120 
+#define PORT 8080
 	
 /* BSCP stands for "Birk Server Client Protocol".*/
 #pragma pack(1)
+
+typedef struct _THREAD_DATA{
+	int sockServerDescriptor;
+	sem_t semReqStart;
+	sem_t semReqComplete;
+} THREAD_DATA;
 
 /* Max size of 5-8 Bytes */
 typedef struct _BSCP_HEADER {
@@ -22,7 +29,7 @@ typedef struct _BSCP_PACKET {
 	char szBody[MAX_BODY]; /* 2048 Bytes */
 } BSCP_PACKET;
 
-int HandleRequest(BSCP_PACKET bscpPacket);
+int HandleRequest(THREAD_DATA tData, BSCP_PACKET bscpPacket);
 int RunServer();
 	
 #endif /* SERVER_H */
