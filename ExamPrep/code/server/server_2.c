@@ -31,14 +31,17 @@ int RunServer(){
 	int iNewAddressLength;
 
 	int iThreads;
-	pthread_t threads[2];
-	sem_t semThreadReady, semThreadComplete;
+	int *iThreadStatus;
+	pthread_t *pThreads;
+	sem_t semThreadReady;
 	struct sockaddr_in saServerAddress;
 	struct sockaddr_in *saClientAddress;
 
-
 	/* Setting number of threads */
 	iThreads = 2;
+	pThreads = NULL;
+	iThreadStatus = NULL;
+	
 
 	/* If unchanged, return error free. */
 	iStatusCode = 0;
@@ -50,14 +53,6 @@ int RunServer(){
 		iStatusCode = errno;
 		berror("Error when opening socket - errcode: %d", iStatusCode);
 	}
-
-	/* Initialize server socket address(es) to zero */
-	saClientAddress = (struct sockaddr_in *) malloc(sizeof(struct sockaddr) * 2);
-	if(saClientAddress == NULL){
-		berror("An error occurred while initializing client address.\n");
-		return ERROR;
-	}
-	memset(&saClientAddress[0], 0, sizeof(struct sockaddr));
 
 	/* Sets address type */
 	saServerAddress.sin_family = AF_INET; 
@@ -74,8 +69,6 @@ int RunServer(){
 		(struct sockaddr *) &saServerAddress,
 		sizeof(saServerAddress)
 	);
-
-	/* Does not continue if bind failed */
 	if(bBindStatus < 0){
 		iStatusCode = errno;
 		berror("Error with bind() - errcode %d", iStatusCode, bBindStatus);
@@ -92,33 +85,49 @@ int RunServer(){
 		return iStatusCode;
 	}
 
+	/* Initialize client socket address(es) to zero */
+	saClientAddress = (struct sockaddr_in *) malloc(sizeof(struct sockaddr) * 2);
+	if(saClientAddress == NULL){
+		berror("An error occurred while initializing client address.\n");
+		return ERROR;
+	}
+	memset(&saClientAddress[0], 0, sizeof(struct sockaddr));
+
+	pThreads = (pthread_t *) malloc(sizeof(pthread_t) * iThreads);
+	iThreadStatus = (int *) malloc(sizeof(int) * iThreads);
+	
+	if(pThreads == NULL || iThreadStatus == NULL){
+	 /*TODO:*/
+	
+	}
 	/* Initialize semaphores */
 	sem_init(&semThreadReady, 0, 2);
-	sem_init(&semThreadComplete, 0, 2);
 
-	/* Open threads */
-	for(i = 0; i <= iThreads; i++){
-		pthread_create(&threads[i], NULL, (void *) Method, NULL);
-	}
-
-	/* Handle requests /
+	/* Handle requests */
 	for(;;){
-		/ TODO: Initialize client socket address to zero /
+		/* Initialize client socket address to zero */
 		sockNewDescriptor = 0;
 		iNewAddressLength = sizeof(saClientAddress[i]); 
+
+		/* Wait for empty thread */
+		sem_wait(&semThreadReady);
 
 		accept(
 			sockServerDescriptor,
 			(struct sockaddr *) &saClientAddress,
 			(socklen_t *) &iNewAddressLength
 		);
+
+		/* Find an empty thread */
+		for(i = 0; i < iThreads; i++){
+			/* Found available thread */
+			if(){
+				pthread_create(&pThreads[i], NULL, Method, )
+			}
+		}
+
 	}
-		*/
  
-	/* Close threads */
-	for(i = 0; i <= iThreads; i++){
-		pthread_join(threads[i], NULL);
-	}
 
 	/* Close the sockets, then assign a secure exit value */
 	free(saClientAddress);
