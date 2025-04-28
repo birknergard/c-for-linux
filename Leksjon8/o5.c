@@ -7,8 +7,6 @@
 typedef struct {
 	int *ipData;
 	pthread_mutex_t *tmLock;
-
-
 } THREAD_DATA;
 #pragma pack()
 

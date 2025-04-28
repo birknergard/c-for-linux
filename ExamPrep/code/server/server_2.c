@@ -25,23 +25,21 @@ int main(void){
 
 int RunServer(){
 	/* Declaring variables */
-	int sockServerDescriptor, sockNewDescriptor;
-	int bBindStatus;
-	int i, iStatusCode, iListened;
-	int iNewAddressLength;
+	int bBindStatus, iListened, iStatusCode, i, j;
 
 	int iThreads;
-	int *iThreadStatus;
 	pthread_t *pThreads;
-	sem_t semThreadReady;
+	THREAD_DATA *ptDataContainer;
+
+	int sockServerDescriptor;
 	struct sockaddr_in saServerAddress;
-	struct sockaddr_in *saClientAddress;
+
+	int iNewAddressLength;
 
 	/* Setting number of threads */
 	iThreads = 2;
 	pThreads = NULL;
-	iThreadStatus = NULL;
-	
+	ptDataContainer = NULL;
 
 	/* If unchanged, return error free. */
 	iStatusCode = 0;
@@ -51,7 +49,9 @@ int RunServer(){
 
 	if(sockServerDescriptor < 0){
 		iStatusCode = errno;
+		close(sockServerDescriptor);
 		berror("Error when opening socket - errcode: %d", iStatusCode);
+		return iStatusCode;
 	}
 
 	/* Sets address type */
@@ -76,8 +76,16 @@ int RunServer(){
 		return iStatusCode;
 	} 
 
+	ptDataContainer = (THREAD_DATA *) malloc(sizeof(THREAD_DATA));
+	if(ptDataContainer == NULL){
+		close(sockServerDescriptor); sockServerDescriptor = -1;
+		berror("An error occurred while allocating to thread container.\n");
+		return ERROR;
+	}
+	memset(ptDataContainer, 0, sizeof(THREAD_DATA));
+
 	/* Make server listen for input */
-	iListened =	listen(sockServerDescriptor, 2);
+	iListened =	listen(sockServerDescriptor, 5);
 	if(iListened < 0){
 		iStatusCode = errno;
 		berror("Listen failed - errcode: %d", iStatusCode);
@@ -85,120 +93,78 @@ int RunServer(){
 		return iStatusCode;
 	}
 
-	/* Initialize client socket address(es) to zero */
-	saClientAddress = (struct sockaddr_in *) malloc(sizeof(struct sockaddr) * 2);
-	if(saClientAddress == NULL){
-		berror("An error occurred while initializing client address.\n");
+	/* Allocate memory for threads */
+	pThreads = (pthread_t *) malloc(sizeof(pthread_t) * iThreads);
+	if(pThreads == NULL){
+		close(sockServerDescriptor); sockServerDescriptor = -1;
+		berror("An error occurred while allocating to thread containers.\n");
 		return ERROR;
 	}
-	memset(&saClientAddress[0], 0, sizeof(struct sockaddr));
+    	
+	/* Initialize thread tracker */
+	memset(ptDataContainer->ipThreadTracker, 0, sizeof(int));
 
-	pThreads = (pthread_t *) malloc(sizeof(pthread_t) * iThreads);
-	iThreadStatus = (int *) malloc(sizeof(int) * iThreads);
-	
-	if(pThreads == NULL || iThreadStatus == NULL){
-	 /*TODO:*/
-	
-	}
-	/* Initialize semaphores */
-	sem_init(&semThreadReady, 0, 2);
+	iNewAddressLength = sizeof(ptDataContainer->saClientAddress); 
+
+	/* Initialize semaphores and mutexes */
+	sem_init(&(ptDataContainer->semThreadReady), 0, iThreads);
+	pthread_mutex_init(&(ptDataContainer->muLock), NULL);
 
 	/* Handle requests */
-	for(;;){
-		/* Initialize client socket address to zero */
-		sockNewDescriptor = 0;
-		iNewAddressLength = sizeof(saClientAddress[i]); 
+	for(j = 0; j < 5; j++){
+		/* Initialize new client socket address to zero */
+		ptDataContainer->sockClientDescriptor = 0;
 
-		/* Wait for empty thread */
-		sem_wait(&semThreadReady);
+		/* Wait for empty thread */ 
+		sem_wait(&(ptDataContainer->semThreadReady));
 
-		accept(
+		/* Accept new request */
+		ptDataContainer->sockClientDescriptor = accept(
 			sockServerDescriptor,
-			(struct sockaddr *) &saClientAddress,
+			(struct sockaddr *) &(ptDataContainer->saClientAddress),
 			(socklen_t *) &iNewAddressLength
 		);
-
-		/* Find an empty thread */
-		for(i = 0; i < iThreads; i++){
-			/* Found available thread */
-			if(){
-				pthread_create(&pThreads[i], NULL, Method, )
-			}
+		/* if connection was unsuccessful */ 
+		if(ptDataContainer->sockClientDescriptor < 0){
+			iStatusCode = errno;
+			berror("An error occured when accepting connection - errcode: %d\n", iStatusCode);
+			break;
 		}
 
+		/* Thread is confirmed open above, now to find it*/
+		for(i = 0; i < iThreads; i++){
+			/* when open thread flag is found, start new thread */
+			if(pThreads[i] == 0){
+				/* makes sure thread is completed before starting a new one */
+				ptDataContainer->iThreadID = i;
+				pthread_join(pThreads[i], NULL); 
+				pthread_create(&pThreads[i], NULL, HandleRequest, (void*) ptDataContainer);
+				break;	
+			}
+		}
 	}
- 
 
 	/* Close the sockets, then assign a secure exit value */
-	free(saClientAddress);
-	saClientAddress = NULL;
+	free(pThreads);
+	free(ptDataContainer->ipThreadTracker);
+	sem_destroy(&(ptDataContainer->semThreadReady));
+	pthread_mutex_destroy(&(ptDataContainer->muLock));
+	free(ptDataContainer);
+	ptDataContainer = NULL;
+	pThreads = NULL;
 	close(sockServerDescriptor); sockServerDescriptor = -1;
-	close(sockNewDescriptor); sockNewDescriptor = -1;
+	close(ptDataContainer->sockClientDescriptor); ptDataContainer->sockClientDescriptor = -1;
 
 	return iStatusCode;
 }
 
-/*
-int HandleRequest(THREAD_DATA tData, BSCP_PACKET bscpPacket){
-	/ TODO: Accept connection from client, execute in open thread /
-	printf("Message received!\n from %p:%d\n", &saClientAddress.sin_addr, PORT);
+void *HandleRequest(void *ptData){
+	/* Accept connection from client, execute in open thread */
+	THREAD_DATA tData = *(THREAD_DATA *) ptData;
 
-	if(preqBuffer == NULL){
-		iStatusCode = ERROR;
-		berror("Data could not be read.");
+	printf("Message received!\n from %p:%d\n", &(tData.saClientAddress.sin_addr), PORT);
+	
+	sem_post(&(tData.semThreadReady));
 
-	} else if(sizeof(preqBuffer->Header) > MAX_HEADER){
-		iStatusCode = ERROR;
-		berror("HEADER exceeds data capacity.");
-
-	} else if(preqBuffer->Header.iDataSize > MAX_BODY){
-		iStatusCode = ERROR;
-		berror("BODY exceeds data capacity.");
-
-		} else {
-			switch(preqBuffer->Header.cAction){
-				case 'R':
-					HandleRequest(*preqBuffer);
-					break;
-				case 'W':
-					HandleRequest(*preqBuffer);
-					break;
-
-				default:
-					berror("Invalid action.");
-					break;
-			} 
-		} 
-	}
-
-	int iSize;
-	char *pszProtocolData;
-	pszProtocolData = NULL;
-
-	iSize = bscpPacket.Header.iDataSize;
-
-	/ Return early if protocol is invalid. Will implement sending error back to client later. /
-	/ Since there is no data to close at this point in the program returning early should be fine. /
-	if(bscpPacket.szBody == NULL){
-		berror("PACKET BODY could not be read.");
-		return ERROR;
-	}
-
-	pszProtocolData = (char *) malloc(iSize + 1);
-	if(pszProtocolData == NULL){
-		berror("Malloc failed on data buffer.");
-		return ERROR;
-	}
-
-	strncpy(pszProtocolData, bscpPacket.szBody, iSize);
-	pszProtocolData[iSize] = '\0';
-	if(pszProtocolData != NULL){
-		printf("-> %s\n", pszProtocolData);
-	}
-
-	free(pszProtocolData);
-	pszProtocolData = NULL;
-
-	return OK;
+	return NULL;
 }
-*/
