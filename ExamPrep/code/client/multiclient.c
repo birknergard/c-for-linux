@@ -41,7 +41,7 @@ int RunMultiClient(char szMessage[]){
 		berror("connect() failed - errcode %d", iErrorCode);
 	}
 
-	send(sockClientDescriptor, , 128 - 1, MSG_DONTWAIT);
+	send(sockClientDescriptor, szMessage, 128 - 1, MSG_DONTWAIT);
 	if(sockClientDescriptor < 0){
 		iErrorCode = errno;
 		berror("write to socket failed - errcode %d", iErrorCode);
@@ -58,13 +58,14 @@ int RunMultiClient(char szMessage[]){
 }
 
 int main(int iArgC, char **apszArgV){
-	int iStatus;
+	int iStatus, i;
 
-	iStatus = RunClient(apszArgV[1]);
+	iStatus = RunMultiClient(apszArgV[1]);
 	if(iStatus != 0){
 		printf("Server exited with error: %d\n", iStatus);
 		return 1;
 	}
+
 
 	return 0;
 }

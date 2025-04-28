@@ -26,7 +26,6 @@ typedef struct _BSCP_PACKET {
 typedef struct _THREAD_DATA{
 	int iThreadID;
 	int ipThreadTracker[2];
-	pthread_mutex_t muLock; 
 	sem_t semThreadReady;
 	int sockClientDescriptor;
 	struct sockaddr_in saClientAddress;

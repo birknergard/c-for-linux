@@ -1,16 +1,15 @@
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <netinet/in.h> /* For INADDR_ANY */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <unistd.h>
 
 #include "../bexam_lib/include/debug.h"
 #include "server_2.h"
-
-void Method(){ printf("Hello");}
 
 int main(void){
 	int iErrorDetected = RunServer(); 
@@ -25,7 +24,7 @@ int main(void){
 
 int RunServer(){
 	/* Declaring variables */
-	int bBindStatus, iListened, iStatusCode, i, j;
+	int bBindStatus, iListened, iStatusCode, i;
 
 	int iThreads;
 	pthread_t *pThreads;
@@ -36,8 +35,11 @@ int RunServer(){
 
 	int iNewAddressLength;
 
+	int iRequests;
+
 	/* Setting number of threads */
 	iThreads = 2;
+	iRequests = 0;
 	pThreads = NULL;
 	ptDataContainer = NULL;
 
@@ -85,7 +87,7 @@ int RunServer(){
 	memset(ptDataContainer, 0, sizeof(THREAD_DATA));
 
 	/* Make server listen for input */
-	iListened =	listen(sockServerDescriptor, 5);
+	iListened =	listen(sockServerDescriptor, 4);
 	if(iListened < 0){
 		iStatusCode = errno;
 		berror("Listen failed - errcode: %d", iStatusCode);
@@ -108,33 +110,27 @@ int RunServer(){
 
 	/* Initialize semaphores and mutexes */
 	sem_init(&(ptDataContainer->semThreadReady), 0, iThreads);
-	pthread_mutex_init(&(ptDataContainer->muLock), NULL);
 
 	/* Handle requests */
-	for(j = 0; j < 5; j++){
+	while((ptDataContainer->sockClientDescriptor = accept(
+			sockServerDescriptor,
+			(struct sockaddr *) &(ptDataContainer->saClientAddress),
+			(socklen_t *) &iNewAddressLength
+	)) >= 0){
+
+		/* Add request */
+		iRequests++;
+
 		/* Initialize new client socket address to zero */
 		ptDataContainer->sockClientDescriptor = 0;
 
 		/* Wait for empty thread */ 
 		sem_wait(&(ptDataContainer->semThreadReady));
 
-		/* Accept new request */
-		ptDataContainer->sockClientDescriptor = accept(
-			sockServerDescriptor,
-			(struct sockaddr *) &(ptDataContainer->saClientAddress),
-			(socklen_t *) &iNewAddressLength
-		);
-		/* if connection was unsuccessful */ 
-		if(ptDataContainer->sockClientDescriptor < 0){
-			iStatusCode = errno;
-			berror("An error occured when accepting connection - errcode: %d\n", iStatusCode);
-			break;
-		}
-
 		/* Thread is confirmed open above, now to find it*/
 		for(i = 0; i < iThreads; i++){
 			/* when open thread flag is found, start new thread */
-			if(pThreads[i] == 0){
+			if(ptDataContainer->ipThreadTracker[i] == 0){
 				/* makes sure thread is completed before starting a new one */
 				ptDataContainer->iThreadID = i;
 				pthread_join(pThreads[i], NULL); 
@@ -142,13 +138,20 @@ int RunServer(){
 				break;	
 			}
 		}
+
+		if(iRequests > 3)
+			break;
+	}
+
+	/* if connection was unsuccessful */ 
+	if(ptDataContainer->sockClientDescriptor < 0){
+		iStatusCode = errno;
+		berror("An error occured when accepting connection - errcode: %d\n", iStatusCode);
 	}
 
 	/* Close the sockets, then assign a secure exit value */
 	free(pThreads);
-	free(ptDataContainer->ipThreadTracker);
 	sem_destroy(&(ptDataContainer->semThreadReady));
-	pthread_mutex_destroy(&(ptDataContainer->muLock));
 	free(ptDataContainer);
 	ptDataContainer = NULL;
 	pThreads = NULL;
@@ -158,13 +161,20 @@ int RunServer(){
 	return iStatusCode;
 }
 
-void *HandleRequest(void *ptData){
+void *HandleRequest(void *vptData){
 	/* Accept connection from client, execute in open thread */
-	THREAD_DATA tData = *(THREAD_DATA *) ptData;
+	THREAD_DATA *ptData = (THREAD_DATA *) vptData;
 
-	printf("Message received!\n from %p:%d\n", &(tData.saClientAddress.sin_addr), PORT);
+	ptData->ipThreadTracker[ptData->iThreadID] = 1;
+
+	printf("Thread created! on address: %p:%d -", &(ptData->saClientAddress.sin_addr), PORT);
+	printf("TRACKER [%d, %d]", ptData->ipThreadTracker[0], ptData->ipThreadTracker[1]);
+	sleep(3);
+
+	ptData->ipThreadTracker[ptData->iThreadID] = 0;
 	
-	sem_post(&(tData.semThreadReady));
+
+	sem_post(&ptData->semThreadReady);
 
 	return NULL;
 }

@@ -1,6 +1,6 @@
 #Makefile template
 
-TARGET = client
+TARGET = multiclient
 LIBRARY = ../bexam_lib/bexamlib.a
 INCLDIR = ./include
 CC = gcc
