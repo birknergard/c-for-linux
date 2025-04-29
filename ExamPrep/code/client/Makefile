@@ -6,8 +6,9 @@ INCLDIR = ./include
 CC = gcc
 CFLAGS = -O2
 CFLAGS += -I $(INCLDIR)
-CFLAGS += -std=c89
+CFLAGS += -std=c99
 CFLAGS += -Wall
+CFLAGS += -lpthread
 
 OBJDIR = obj
 

@@ -25,7 +25,7 @@ int main(void){
 
 int RunServer(){
 	/* Declaring variables */
-	int bBindStatus, iListened, iStatusCode, i;
+	int iBinded, iListened, i;
 
 	int iThreads;
 	int **ppiThreadTracker;
@@ -34,7 +34,6 @@ int RunServer(){
 	sem_t semThreadReady;
 
 	int sockServerDescriptor;
-	int sockClientBuffer;
 	struct sockaddr_in saServerAddress;
 	struct sockaddr_in saNewClientAddress;
 
@@ -43,23 +42,19 @@ int RunServer(){
 
 	/* Setting number of threads */
 	iThreads = 3;
-	iRequestLimit = 5;
+	iRequestLimit = 4;
 
 	/* Set pointers to NULL */
 	ppiThreadTracker = NULL;
 	pThreads = NULL;
 	pptDataContainers = NULL;
 
-	/* If unchanged, return error free. */
-	iStatusCode = 0;
-
 	/* Open network socket (TCP/IP Protocol), as a stream */
 	sockServerDescriptor = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockServerDescriptor < 0){
-		iStatusCode = errno;
+		berror("Error when opening socket - errcode: %d", errno);
 		close(sockServerDescriptor);
-		berror("Error when opening socket - errcode: %d", iStatusCode);
-		return iStatusCode;
+		return ERROR;
 	}
 
 	/* Sets address type */
@@ -72,33 +67,30 @@ int RunServer(){
 	saServerAddress.sin_addr.s_addr = INADDR_ANY;  
 			
 	/* Bind socket to address */
-	bBindStatus = bind(
+	if((iBinded = bind(
 		sockServerDescriptor,
 		(struct sockaddr *) &saServerAddress,
 		sizeof(saServerAddress)
-	);
-	if(bBindStatus < 0){
-		iStatusCode = errno;
-		berror("Error with bind() - errcode %d", iStatusCode, bBindStatus);
+	)) < 0){
+		berror("Error with bind() - errcode %d", errno);
 		close(sockServerDescriptor); sockServerDescriptor = -1;
-		return iStatusCode;
+		return ERROR;
 	} 
 
 
 	/* Make server listen for input */
 	iListened =	listen(sockServerDescriptor, 5);
 	if(iListened < 0){
-		iStatusCode = errno;
-		berror("Listen failed - errcode: %d", iStatusCode);
+		berror("Listen failed - errcode: %d", errno);
 		close(sockServerDescriptor); sockServerDescriptor = -1;
-		return iStatusCode;
+		return ERROR;
 	}
 
 	pptDataContainers = (THREAD_DATA **) malloc(sizeof(THREAD_DATA *) * iThreads);
 	if(pptDataContainers == NULL) {
+		berror("An error occurred while allocating to thread containers.\n");
 		close(sockServerDescriptor); sockServerDescriptor = -1;
 		free(pThreads);
-		berror("An error occurred while allocating to thread containers.\n");
 		return ERROR;
 	}
 	memset(pptDataContainers, 0, sizeof(THREAD_DATA *) * iThreads);
@@ -106,15 +98,16 @@ int RunServer(){
 	/* Initialize thread tracker */
 	ppiThreadTracker = (int **) malloc(sizeof(int *) * iThreads);
 	if(ppiThreadTracker == NULL){
-		berror("An error occured whiile allocating the thread tracker.", iStatusCode);
+		berror("An error occured while allocating the thread tracker\n");
 		close(sockServerDescriptor); sockServerDescriptor = -1;
 		return ERROR;
 	}
+	
 	memset(ppiThreadTracker, 0, sizeof(int) * iThreads);
 	for(i = 0; i < iThreads; i++){
 		ppiThreadTracker[i] = (int *) malloc(sizeof(int) * 2);
 		if(ppiThreadTracker[i] == NULL){
-			berror("An error occured whiile allocating the thread tracker.", iStatusCode);
+			berror("An error occured whiile allocating the thread tracker\n");
 			close(sockServerDescriptor); sockServerDescriptor = -1;
 			free(pptDataContainers);
 
@@ -155,23 +148,11 @@ int RunServer(){
 		saNewClientAddress = (struct sockaddr_in) {0}; 
 		iNewAddressLength = sizeof(saNewClientAddress); 
 
-		sockClientBuffer = accept(
-			sockServerDescriptor,
-			(struct sockaddr *) &saNewClientAddress,
-			(socklen_t *) &iNewAddressLength
-		);
-		/* if connection was unsuccessful */ 
-		if(sockClientBuffer < 0){
-			iStatusCode = errno;
-			berror("An error occured when accepting connection - errcode: %d\n", iStatusCode);
-			break;
-		}
-
 		/* Wait for empty thread */ 
 		sem_wait(&semThreadReady);
 
 		/* Thread is confirmed open above, now to find it*/
-		i = 0;
+		i = -1;
 		for(;;){
 			/* Loops until it finds an open thread */
 			i++;
@@ -193,16 +174,25 @@ int RunServer(){
 				//bdebug("ALLOCATING NEW MEMORY FOR FOR TD-%d DATA ...\n", i);
 				pptDataContainers[i] = (THREAD_DATA *) malloc(sizeof(THREAD_DATA));
 				if(pptDataContainers[i] == NULL){
-					close(sockServerDescriptor); sockServerDescriptor = -1;
 					berror("An error occurred while allocating to thread container.\n");
+					close(sockServerDescriptor); sockServerDescriptor = -1;
 					break;
 				}
 				memset(pptDataContainers[i], 0, sizeof(THREAD_DATA));
 
 				puts("WAITING FOR CLIENT ... \n");
-				pptDataContainers[i]->sockClientDescriptor = sockClientBuffer;  
-				close(sockClientBuffer); sockClientBuffer = -1;
+				pptDataContainers[i]->sockClientDescriptor = accept(
+					sockServerDescriptor,
+					(struct sockaddr *) &saNewClientAddress,
+					(socklen_t *) &iNewAddressLength
+				);
 				puts("ACCEPTED CONNECTION\n");
+
+				/* if connection was unsuccessful */ 
+				if(pptDataContainers[i]->sockClientDescriptor < 0){
+					berror("An error occured when accepting connection - errcode: %d\n", errno);
+					break;
+				}
 
 				/* Stores a reference to our thread tracker... */
 				pptDataContainers[i]->ppiThreadTracker = ppiThreadTracker; 
@@ -218,6 +208,8 @@ int RunServer(){
 
 				/* Mark thread as running */
 				pptDataContainers[i]->ppiThreadTracker[i][1] = 1;
+
+				/* Create thread */
 				pthread_create(&pThreads[i], NULL, HandleRequest, (void*) pptDataContainers[i]);
 				break;	
 			}
@@ -225,6 +217,7 @@ int RunServer(){
 	}
 
 	/* Close any open threads */
+	puts("WAITING FOR REMAINING THREADS ...")
 	for(i = 0; i < iThreads; i++){
 		if(ppiThreadTracker[i][0] == 1 || ppiThreadTracker[i][1] == 1)
 			pthread_join(pThreads[i], NULL);
@@ -247,15 +240,18 @@ int RunServer(){
 
 	/* Close the sockets, then assign a secure exit value */
 	close(sockServerDescriptor); sockServerDescriptor = -1;
+	puts("EXITING ...")
 
-	return iStatusCode;
+	return OK;
 }
 
 void *HandleRequest(void *vptData){
-	/* Accept connection from client, execute in open thread */
-	THREAD_DATA *ptData = (THREAD_DATA *) vptData;
+	/* Preparing for execution */
+	int iReceived, iSent;
+	BSCP_PACKET *bscpPacket = NULL;
+	THREAD_DATA *ptData = NULL;
 
-	bdebug("Printing thread message\n");
+	ptData = (THREAD_DATA *) vptData;
 	printf("TH-ID %d: THREAD STARTED! on port: %d -> TRACKER [%d, %d, %d]\n", 
 		ptData->iThreadID,
 		PORT,
@@ -264,8 +260,47 @@ void *HandleRequest(void *vptData){
 		ptData->ppiThreadTracker[2][1]
 	);
 
+	/* Allocate memory for buffer */
+	bscpPacket = (BSCP_PACKET*) malloc(sizeof(BSCP_PACKET));
+	if(bscpPacket == NULL){
+		ptData->ppiThreadTracker[ptData->iThreadID][1] = 0;
+		sem_post(ptData->semThreadReady);
+		return NULL;
+	}
+
+	memset(bscpPacket, 0, sizeof(BSCP_PACKET));
+
+	/* Take request */
+	if((iReceived = recv(ptData->sockClientDescriptor, bscpPacket, MAX_PACKET, 0)) < 0){
+		berror("TH-ID %d: Receive failed! errcode - %d", ptData->iThreadID, errno);
+		free(bscpPacket);
+		ptData->ppiThreadTracker[ptData->iThreadID][1] = 0;
+		sem_post(ptData->semThreadReady);
+		return NULL;
+	} 
+	printf("TH-ID %d: BODY=%s\n", ptData->iThreadID, bscpPacket->szBody);
+
+	/* Send response */
+	if((iSent = send(
+		ptData->sockClientDescriptor,
+		bscpPacket->szBody,
+		strlen(bscpPacket->szBody),
+		MSG_DONTWAIT
+	)) < 0){
+		berror("TH-ID %d: SEND FAILED - errcode %d", ptData->iThreadID, errno);
+		free(bscpPacket);
+		ptData->ppiThreadTracker[ptData->iThreadID][1] = 0;
+		sem_post(ptData->semThreadReady);
+		return NULL;
+	} 
+
 	/* Simulate work */
 	sleep(5);
+
+	/* Signal completion to main process */
+	free(bscpPacket);
+	ptData->ppiThreadTracker[ptData->iThreadID][1] = 0;
+	sem_post(ptData->semThreadReady);
 
 	printf("TH-ID %d: THREAD COMPLETE! Exiting ... -> TRACKER [%d, %d, %d]\n",
 		ptData->iThreadID,
@@ -273,10 +308,6 @@ void *HandleRequest(void *vptData){
 		ptData->ppiThreadTracker[1][1],
 		ptData->ppiThreadTracker[2][1]
 	);
-
-	/* Signal completion to main process */
-	ptData->ppiThreadTracker[ptData->iThreadID][1] = 0;
-	sem_post(ptData->semThreadReady);
 
 	/* TODO: Retrieve data from thread? */ 
 	return NULL;

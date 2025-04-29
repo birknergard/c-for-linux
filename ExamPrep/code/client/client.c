@@ -37,7 +37,7 @@ int RunClient(){
 			iErrorCode = errno;
 			berror("connect() failed - errcode %d", iErrorCode);
 		} else {
-			send(sockClientDescriptor, "Hello server!", 128 - 1, MSG_DONTWAIT);
+			send(sockClientDescriptor, "Hello server!", 128 - 1, 0);
 
 			if(sockClientDescriptor < 0){
 				iErrorCode = errno;
