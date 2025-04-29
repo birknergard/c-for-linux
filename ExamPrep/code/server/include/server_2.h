@@ -25,11 +25,10 @@ typedef struct _BSCP_PACKET {
 
 typedef struct _THREAD_DATA{
 	int iThreadID;
-	int *ipThreadTracker;
+	int **ppiThreadTracker;
 	sem_t *semThreadReady;
 	sem_t *semEditingTracker;
 	int sockClientDescriptor;
-	struct sockaddr_in saClientAddress;
 } THREAD_DATA;
 
 void *HandleRequest(void *tData);
