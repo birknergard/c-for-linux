@@ -12,8 +12,9 @@
 #include "server_2.h"
 
 int main(void){
-	int iErrorDetected = RunServer(); 
-
+	int iErrorDetected;
+	iErrorDetected = RunServer(); 
+	
 	if(iErrorDetected != 0){
 		berror("Server crashed - errcode: %d", iErrorDetected);			
 		return 1;
@@ -28,27 +29,30 @@ int RunServer(){
 
 	int iThreads;
 	pthread_t *pThreads;
-	THREAD_DATA *ptDataContainer;
+	THREAD_DATA **pptDataContainers;
+	sem_t semThreadReady;
+	/* Size of array matches the number of threads*/
+	int *ipThreadTracker;
 
 	int sockServerDescriptor;
 	struct sockaddr_in saServerAddress;
 
 	int iNewAddressLength;
-
 	int iRequests;
 
 	/* Setting number of threads */
-	iThreads = 2;
-	iRequests = 0;
+	iThreads = 3;
+
+	/* Set pointers to NULL */
+	ipThreadTracker = NULL;
 	pThreads = NULL;
-	ptDataContainer = NULL;
+	pptDataContainers = NULL;
 
 	/* If unchanged, return error free. */
 	iStatusCode = 0;
 
 	/* Open network socket (TCP/IP Protocol), as a stream */
 	sockServerDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-
 	if(sockServerDescriptor < 0){
 		iStatusCode = errno;
 		close(sockServerDescriptor);
@@ -78,22 +82,24 @@ int RunServer(){
 		return iStatusCode;
 	} 
 
-	ptDataContainer = (THREAD_DATA *) malloc(sizeof(THREAD_DATA));
-	if(ptDataContainer == NULL){
-		close(sockServerDescriptor); sockServerDescriptor = -1;
-		berror("An error occurred while allocating to thread container.\n");
-		return ERROR;
-	}
-	memset(ptDataContainer, 0, sizeof(THREAD_DATA));
 
 	/* Make server listen for input */
-	iListened =	listen(sockServerDescriptor, 4);
+	iListened =	listen(sockServerDescriptor, 5);
 	if(iListened < 0){
 		iStatusCode = errno;
 		berror("Listen failed - errcode: %d", iStatusCode);
 		close(sockServerDescriptor); sockServerDescriptor = -1;
 		return iStatusCode;
 	}
+
+	/* Initialize thread tracker */
+	ipThreadTracker = (int *) malloc(sizeof(int) * iThreads);
+	if(ipThreadTracker == NULL){
+		berror("An error occured whiile allocating the thread tracker.", iStatusCode);
+		close(sockServerDescriptor); sockServerDescriptor = -1;
+		return ERROR;
+	}
+	memset(ipThreadTracker, 0, sizeof(int) * iThreads);
 
 	/* Allocate memory for threads */
 	pThreads = (pthread_t *) malloc(sizeof(pthread_t) * iThreads);
@@ -102,61 +108,119 @@ int RunServer(){
 		berror("An error occurred while allocating to thread containers.\n");
 		return ERROR;
 	}
-    	
-	/* Initialize thread tracker */
-	memset(ptDataContainer->ipThreadTracker, 0, sizeof(int));
 
-	iNewAddressLength = sizeof(ptDataContainer->saClientAddress); 
+	pptDataContainers = (THREAD_DATA **) malloc(sizeof(THREAD_DATA *) * iThreads);
+	if(pptDataContainers == NULL) {
+		close(sockServerDescriptor); sockServerDescriptor = -1;
+		free(pThreads);
+		berror("An error occurred while allocating to thread containers.\n");
+		return ERROR;
+	}
+	memset(pptDataContainers, 0, sizeof(THREAD_DATA *) * iThreads);
 
 	/* Initialize semaphores and mutexes */
-	sem_init(&(ptDataContainer->semThreadReady), 0, iThreads);
+	sem_init(&semThreadReady, 0, 2);
 
+	/* Initializing request count tracker */
+	iRequests = 0;
+
+	puts("STARTING SERVER\n");
 	/* Handle requests */
-	while((ptDataContainer->sockClientDescriptor = accept(
-			sockServerDescriptor,
-			(struct sockaddr *) &(ptDataContainer->saClientAddress),
-			(socklen_t *) &iNewAddressLength
-	)) >= 0){
-
+	while(1){
+		puts("Accepting new request ...\n");
 		/* Add request */
 		iRequests++;
-
-		/* Initialize new client socket address to zero */
-		ptDataContainer->sockClientDescriptor = 0;
+		if(iRequests > 1){
+			bdebug("Max requests exceeded, exiting ... \n");
+			break;
+		}
 
 		/* Wait for empty thread */ 
-		sem_wait(&(ptDataContainer->semThreadReady));
+		bdebug("Waiting for open thread ...\n");
+		sem_wait(&semThreadReady);
 
 		/* Thread is confirmed open above, now to find it*/
-		for(i = 0; i < iThreads; i++){
+		i = 0;
+		for(;;){
+			/* Loops until it finds an open thread */
+			i++;
+			if(i == iThreads) i = 0;
+
 			/* when open thread flag is found, start new thread */
-			if(ptDataContainer->ipThreadTracker[i] == 0){
-				/* makes sure thread is completed before starting a new one */
-				ptDataContainer->iThreadID = i;
-				pthread_join(pThreads[i], NULL); 
-				pthread_create(&pThreads[i], NULL, HandleRequest, (void*) ptDataContainer);
+			bdebug("FINDING AVAILABLE THREAD\n");
+			if(ipThreadTracker[i] == 0){
+				bdebug("JOINING ...\n");
+				/* makes sure thread is completed before restarting NOTE: WILL WARN IN VALGRIND*/
+				/*pthread_join(pThreads[i], NULL);*/
+
+				bdebug("FREEING OLD DATA FOR TD-%d if exists ...\n", i);
+				/* Create unique pointer for each new thread */
+				if(pptDataContainers[i] != NULL){
+					free(pptDataContainers[i]);
+				}
+
+				bdebug("ALLOCATING NEW MEMORY FOR FOR TD-%d DATA ...\n", i);
+				pptDataContainers[i] = (THREAD_DATA *) malloc(sizeof(THREAD_DATA));
+				if(pptDataContainers[i] == NULL){
+					close(sockServerDescriptor); sockServerDescriptor = -1;
+					berror("An error occurred while allocating to thread container.\n");
+					break;
+				}
+
+				bdebug("SETTING NEW MEMORY FOR FOR TD-%d DATA ...\n", i);
+				memset(pptDataContainers[i], 0, sizeof(THREAD_DATA));
+				pptDataContainers[i]->saClientAddress = (struct sockaddr_in) {0}; 
+				iNewAddressLength = sizeof(pptDataContainers[i]->saClientAddress); 
+
+				pptDataContainers[i]->sockClientDescriptor = accept(
+						sockServerDescriptor,
+						(struct sockaddr *) &pptDataContainers[i]->saClientAddress,
+						(socklen_t *) &iNewAddressLength
+				);
+				/* if connection was unsuccessful */ 
+				if(pptDataContainers[i]->sockClientDescriptor < 0){
+					iStatusCode = errno;
+					berror("An error occured when accepting connection - errcode: %d\n", iStatusCode);
+					break;
+				} 
+
+				/* Stores a reference to our thread tracker... */
+				pptDataContainers[i]->ipThreadTracker = ipThreadTracker; 
+
+				/* and semaphores */
+				pptDataContainers[i]->semThreadReady = &semThreadReady;
+
+				/*bdebug("Open thread found (id:%d)! Running thread ... \n", i);*/
+				pptDataContainers[i]->iThreadID = i;
+				pptDataContainers[i]->ipThreadTracker[i] = 1;
+				pthread_create(&pThreads[i], NULL, HandleRequest, (void*) pptDataContainers[i]);
 				break;	
 			}
 		}
-
-		if(iRequests > 3)
-			break;
 	}
 
-	/* if connection was unsuccessful */ 
-	if(ptDataContainer->sockClientDescriptor < 0){
-		iStatusCode = errno;
-		berror("An error occured when accepting connection - errcode: %d\n", iStatusCode);
+	/* Close any open threads */
+	for(i = 0; i < iThreads; i++){
+		if(ipThreadTracker[i] == 1)
+			pthread_join(pThreads[i], NULL);
 	}
+	free(pThreads);
+	pThreads = NULL;
+
+	/* Destroy thread resources */
+	sem_destroy(&semThreadReady);
+	for(i = 0; i < iThreads; i++){
+		if(pptDataContainers[i] != NULL){
+			close(pptDataContainers[i]->sockClientDescriptor); pptDataContainers[i]->sockClientDescriptor = -1;
+			free(pptDataContainers[i]);
+		}
+	}
+	free(ipThreadTracker);
+	free(pptDataContainers);
+	pptDataContainers = NULL;
 
 	/* Close the sockets, then assign a secure exit value */
-	free(pThreads);
-	sem_destroy(&(ptDataContainer->semThreadReady));
-	free(ptDataContainer);
-	ptDataContainer = NULL;
-	pThreads = NULL;
 	close(sockServerDescriptor); sockServerDescriptor = -1;
-	close(ptDataContainer->sockClientDescriptor); ptDataContainer->sockClientDescriptor = -1;
 
 	return iStatusCode;
 }
@@ -165,16 +229,28 @@ void *HandleRequest(void *vptData){
 	/* Accept connection from client, execute in open thread */
 	THREAD_DATA *ptData = (THREAD_DATA *) vptData;
 
-	ptData->ipThreadTracker[ptData->iThreadID] = 1;
+	printf("TH-ID %d: THREAD STARTED! on port: %d -> TRACKER [%d, %d, %d]\n", 
+		ptData->iThreadID,
+		PORT,
+		ptData->ipThreadTracker[0],
+		ptData->ipThreadTracker[1],
+		ptData->ipThreadTracker[2]
+	);
 
-	printf("Thread created! on address: %p:%d -", &(ptData->saClientAddress.sin_addr), PORT);
-	printf("TRACKER [%d, %d]", ptData->ipThreadTracker[0], ptData->ipThreadTracker[1]);
-	sleep(3);
-
+	/* Simulate work */
+	sleep(5);
 	ptData->ipThreadTracker[ptData->iThreadID] = 0;
-	
 
-	sem_post(&ptData->semThreadReady);
+	printf("TH-ID %d: THREAD COMPLETE! Exiting ... -> TRACKER [%d, %d, %d]\n",
+		ptData->iThreadID,
+		ptData->ipThreadTracker[0],
+		ptData->ipThreadTracker[1],
+		ptData->ipThreadTracker[2]
+	);
 
+	/* Signal completion to main process */
+	sem_post(ptData->semThreadReady);
+
+	/* TODO: Retrieve data from thread? */ 
 	return NULL;
 }
